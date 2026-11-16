@@ -69,7 +69,7 @@ const D = DESIGNS[which] || DESIGNS.haru, S = D.s, F = D.female ? 1 : 0;
 const P = (x, y, z) => [x * S, y * S, z * S];
 
 // ---------- skeleton (rest A-pose, identity rotations, metres) ----------
-const sh = F ? .158 : .172, hipW = F ? .09 : .086;
+const sh = F ? .158 : .172, hipW = F ? .1 : .098;
 const J = {
   hips: P(0, .96, 0), spine: P(0, 1.07, 0), chest: P(0, 1.22, 0), neck: P(0, 1.405, 0), head: P(0, 1.475, .005),
   clavL: P(.03, 1.385, 0), upperArmL: P(sh, 1.36, -.005), forearmL: P(sh + .148, 1.152, -.005), handL: P(sh + .27, .985, .01),
@@ -96,6 +96,7 @@ const add = (g, f, o) => parts[g].push({ f, op: 'add', k: .02, bias: 0, ...o });
 const sub = (g, f, k = .01, o = {}) => parts[g].push({ f, op: 'sub', k, bias: 0, ...o });
 
 // The haori comes first so its front opening, vent and cuffs can be carved before the clothes beneath are added.
+const HEM = (F ? .78 : .8) * S; // haori hem: upper thigh, so the legs stay readable
 const zig = (x, z, n, a) => a * Math.abs((((Math.atan2(x, z) * n / Math.PI) % 2) + 2) % 2 - 1);
 // the open front is painted as crisp bands: a widening V of jacket, sash and hakama framed by lapels
 const vee = y => (.026 + Math.max(0, 1.4 * S - y) * .075) * S, front = (x, y, z) => Math.max(Math.abs(x) - vee(y), -z);
@@ -107,28 +108,30 @@ const haoriColor = {
     [(x, y, z) => Math.max(front(x, y, z), .993 * S - y), D.uniform],
     [front, D.hakama],
     [lapel, D.haoriEdge],
-    [(x, y, z) => y - (.652 * S), D.haoriEdge], [(x, y, z) => y - (.67 * S + zig(x, z, 5, .045 * S)), D.haoriHem], [(x, y, z) => y - (.682 * S + zig(x, z, 5, .045 * S)), D.haoriEdge],
+    [(x, y, z) => y - (HEM + .012 * S), D.haoriEdge], [(x, y, z) => y - (HEM + .03 * S + zig(x, z, 5, .035 * S)), D.haoriHem], [(x, y, z) => y - (HEM + .042 * S + zig(x, z, 5, .035 * S)), D.haoriEdge],
   ],
 };
-const aboveHem = (x, y, z) => y > .646 * S;
+const aboveHem = (x, y, z) => y > HEM - .006 * S;
 const coatBones = (x, y, z) => {
   if (y > 1.02 * S) { const u = sstep(1.02 * S, 1.22 * S, y); return { spine: 1 - u, chest: u }; }
-  const t = sstep(1.0 * S, .68 * S, y), s = sstep(-.06, .06, x), back = sstep(-.02, -.12, z) * t;
+  const t = sstep(1.0 * S, HEM + .04 * S, y), s = sstep(-.06, .06, x), back = sstep(-.02, -.12, z) * t;
   return { hips: 1 - t * .7, thighL: t * .7 * s * (1 - back), thighR: t * .7 * (1 - s) * (1 - back), coatB: t * .7 * back };
 };
 const chestR = F ? [.128, .122, .094] : [.14, .124, .096];
 add('body', ell(P(0, 1.25, -.01), [chestR[0] + .016, chestR[1] + .018, chestR[2] + .016 + F * .022]), { k: .035, color: haoriColor, bones: { chest: 1 }, tag: 'haori', bias: .006, valid: aboveHem });
-add('body', cone(P(0, 1.17, -.014), P(0, .64, -.03), (F ? .118 : .122) * S, (F ? .19 : .175) * S), { k: .045, color: haoriColor, bones: coatBones, tag: 'haori', bias: .006, valid: aboveHem });
+add('body', cone(P(0, 1.17, -.014), [0, HEM - .02 * S, -.025 * S], (F ? .118 : .122) * S, (F ? .17 : .158) * S), { k: .04, color: haoriColor, bones: coatBones, tag: 'haori', bias: .006, valid: aboveHem });
 for (const s of [1, -1]) {
   const L = s > 0 ? 'L' : 'R', A = J['upperArm' + L], E = J['forearm' + L], W = J['hand' + L];
-  add('body', cone(lerp3(A, J['clav' + L], .25), E, .06 * S, .062 * S), { k: .045, color: haoriColor, bones: (x, y, z) => { const t = sstep(.1 * S, (sh + .02) * S, Math.abs(x)); return { chest: 1 - t, ['upperArm' + L]: t }; }, tag: 'haori', bias: .006, valid: aboveHem });
-  add('body', cone(E, lerp3(E, W, .8), .062 * S, .058 * S), { k: .035, color: haoriColor, bones: { ['forearm' + L]: 1 }, tag: 'haori', bias: .006, valid: aboveHem });
+  add('body', cone(lerp3(A, J['clav' + L], .25), E, .055 * S, .057 * S), { k: .04, color: haoriColor, bones: (x, y, z) => { const t = sstep(.1 * S, (sh + .02) * S, Math.abs(x)); return { chest: 1 - t, ['upperArm' + L]: t }; }, tag: 'haori', bias: .006, valid: aboveHem });
+  add('body', cone(E, lerp3(E, W, .8), .057 * S, .052 * S), { k: .03, color: haoriColor, bones: { ['forearm' + L]: 1 }, tag: 'haori', bias: .006, valid: aboveHem });
   const bag = lerp3(E, W, .42);
-  add('body', ell(add3(bag, [.004 * s * S, -.075 * S, -.004]), [.028 * S, .085 * S, .07 * S], [0, 0, s * -.6]), { k: .04, color: haoriColor, bones: { ['sleeve' + L]: .8, ['forearm' + L]: .2 }, tag: 'haori', bias: .006, valid: aboveHem });
+  add('body', ell(add3(bag, [.004 * s * S, -.075 * S, -.004]), [.022 * S, .068 * S, .055 * S], [0, 0, s * -.6]), { k: .035, color: haoriColor, bones: { ['sleeve' + L]: .8, ['forearm' + L]: .2 }, tag: 'haori', bias: .006, valid: aboveHem });
   sub('body', cone(lerp3(E, W, .8), lerp3(E, W, 1.3), .045 * S, .06 * S), .008, { color: D.haoriEdge, tag: 'lining', bones: { ['forearm' + L]: 1 } });
 }
 // level hem and the neck opening
-sub('body', rbox(P(0, .53, 0), [.5 * S, .11 * S, .5 * S], .005), .01, { color: D.haoriEdge, tag: 'lining', bones: coatBones });
+sub('body', rbox([0, HEM - .11 * S, 0], [.5 * S, .11 * S, .5 * S], .005), .01, { color: D.haoriEdge, tag: 'lining', bones: coatBones });
+// side slits split the skirt into front and back panels that part around each stride
+for (const s of [1, -1]) sub('body', rbox([s * .16 * S, HEM + .085 * S, -.012 * S], [.035 * S, .09 * S, .1 * S], .01), .012, { color: D.haoriEdge, tag: 'lining', bones: coatBones });
 sub('body', cone(P(0, 1.37, -.01), P(0, 1.5, -.01), .07 * S, .075 * S), .015, { color: D.haoriEdge, tag: 'lining', bones: { chest: 1 } });
 
 // uniform jacket
@@ -142,31 +145,30 @@ for (const s of [1, -1]) {
   add('body', cone(add3(J['upperArm' + L], [-.02 * s, 0, 0]), J['forearm' + L], .048 * S, .041 * S), { k: .035, color: D.uniform, bones: (x, y, z) => { const t = sstep(.1 * S, sh * S, Math.abs(x)); return { chest: 1 - t, ['upperArm' + L]: t }; }, tag: 'sleeve' });
   add('body', cone(J['forearm' + L], lerp3(J['forearm' + L], J['hand' + L], .92), .041 * S, .033 * S), { k: .03, color: D.uniform, bones: { ['forearm' + L]: 1 }, tag: 'sleeve' });
 }
-// hakama: wide pleated trousers, one fluid flare per leg
-add('body', ell(P(0, .955, -.005), [(F ? .132 : .124) * S, .095 * S, .088 * S]), { k: .045, color: D.hakama, bones: { hips: 1 }, tag: 'hakama' });
+// uniform trousers: two separate legs, roomy at the thigh and tucked into white leg wraps at mid-calf
+add('body', ell(P(0, .955, -.005), [(F ? .126 : .12) * S, .09 * S, .085 * S]), { k: .04, color: D.hakama, bones: { hips: 1 }, tag: 'hakama' });
 const pleat = (f, n, a) => { const g = (x, y, z) => { const lx = Math.abs(x) - hipW * S; return f(x, y, z) + a * Math.sin(Math.atan2(lx, z) * n) * sstep(.85 * S, .4 * S, y); }; g.b = f.b.map((v, i) => v + (i < 3 ? -a : a)); return g; };
 for (const s of [1, -1]) {
   const L = s > 0 ? 'L' : 'R', knee = J['shin' + L], ankle = add3(J['foot' + L], [0, .085 * S, 0]);
-  add('body', pleat(cone(add3(J['thigh' + L], [0, .03, 0]), knee, .09 * S, .08 * S), 7, .003), { k: .05, color: D.hakama, bones: (x, y) => { const t = sstep(.95 * S, .78 * S, y); return { hips: 1 - t, ['thigh' + L]: t }; }, tag: 'hakama' });
-  add('body', pleat(cone(knee, ankle, .08 * S, .1 * S), 7, .0035), { k: .045, color: D.hakama, bones: (x, y) => { const t = sstep(.58 * S, .42 * S, y); return { ['thigh' + L]: 1 - t, ['shin' + L]: t }; }, tag: 'hakama' });
-  sub('body', ell(add3(ankle, [0, -.065 * S, 0]), [.095 * S, .055 * S, .095 * S]), .016, { color: D.hakama, tag: 'hakama', bones: { ['shin' + L]: 1 } });
-  add('body', cone(add3(ankle, [0, .06 * S, 0]), add3(J['foot' + L], [0, .005, 0]), .047 * S, .04 * S), { k: .02, color: D.wrap, bones: { ['shin' + L]: 1 }, tag: 'wrap' });
+  add('body', pleat(cone(add3(J['thigh' + L], [0, .03, 0]), knee, .08 * S, .066 * S), 7, .0025), { k: .03, color: D.hakama, bones: (x, y) => { const t = sstep(.95 * S, .78 * S, y); return { hips: 1 - t, ['thigh' + L]: t }; }, tag: 'hakama' });
+  add('body', pleat(cone(knee, [knee[0], .3 * S, knee[2] - .005], .066 * S, .062 * S), 7, .0025), { k: .028, color: D.hakama, bones: (x, y) => { const t = sstep(.58 * S, .42 * S, y); return { ['thigh' + L]: 1 - t, ['shin' + L]: t }; }, tag: 'hakama' });
+  add('body', cone([knee[0], .33 * S, knee[2] - .005], add3(J['foot' + L], [0, .005, 0]), .054 * S, .041 * S), { k: .018, color: D.wrap, bones: { ['shin' + L]: 1 }, tag: 'wrap' });
   const heel = add3(J['foot' + L], [0, -.035 * S, -.035 * S]), toe = add3(J['foot' + L], [0, -.05 * S, .115 * S]);
   add('body', cone(heel, toe, .041 * S, .032 * S), { k: .03, color: D.wrap, bones: { ['foot' + L]: 1 }, tag: 'foot' });
   add('body', rbox(add3(J['foot' + L], [0, -.077 * S, .04 * S]), [.046 * S, .009 * S, .122 * S], .008), { k: .005, color: D.sandal, bones: { ['foot' + L]: 1 }, tag: 'sandal', bias: .003 });
 }
-add('body', pleat(cone(P(0, .9, -.005), P(0, .3, -.005), .07 * S, .085 * S), 9, .003), { k: .07, color: D.hakama, bones: (x, y) => { const s = sstep(-.04, .04, x), t = sstep(.75 * S, .45 * S, y); return { hips: (1 - sstep(.95 * S, .75 * S, y)) * .6, thighL: s * (1 - t), thighR: (1 - s) * (1 - t), shinL: s * t, shinR: (1 - s) * t }; }, tag: 'hakama' });
+add('body', ell(P(0, .86, -.012), [.07 * S, .065 * S, .07 * S]), { k: .035, color: D.hakama, bones: (x, y) => { const s = sstep(-.05, .05, x), t = sstep(.92 * S, .8 * S, y); return { hips: 1 - t * .6, thighL: s * t * .6, thighR: (1 - s) * t * .6 }; }, tag: 'hakama' });
 // sash belt over the hakama waist
 add('body', cone(P(0, 1.045, -.004), P(0, .99, -.004), (F ? .116 : .122) * S, (F ? .122 : .126) * S), { k: .008, color: D.belt, bones: { spine: .6, hips: .4 }, tag: 'belt', bias: .004 });
 
 // Head: skull, cheeks, a small anime jaw and chin, nose, ears, neck and the hair cap
-const hc = P(0, 1.585, 0);
-add('head', ell(hc, [.086 * S, .097 * S, .092 * S]), { k: .03, color: D.skin, bones: { head: 1 }, tag: 'face' });
-add('head', cone(P(0, 1.558, .012), P(0, 1.478, .054), .072 * S, .016 * S), { k: .045, color: D.skin, bones: { head: 1 }, tag: 'face' });
-add('head', mirror(ell(P(.044, 1.527, .042), [.034 * S, .029 * S, .034 * S])), { k: .035, color: D.skin, bones: { head: 1 }, tag: 'face' });
-add('head', cone(P(0, 1.55, .083), P(0, 1.524, .093), .0055 * S, .0075 * S), { k: .016, color: D.skin, bones: { head: 1 }, tag: 'face' });
+const hc = P(0, 1.588, -.004);
+add('head', ell(hc, [.085 * S, .098 * S, .09 * S]), { k: .03, color: D.skin, bones: { head: 1 }, tag: 'face' });
+add('head', cone(P(0, 1.556, .014), P(0, 1.472, .05), .066 * S, .011 * S), { k: .04, color: D.skin, bones: { head: 1 }, tag: 'face' });
+add('head', mirror(ell(P(.042, 1.536, .04), [.028 * S, .025 * S, .03 * S])), { k: .03, color: D.skin, bones: { head: 1 }, tag: 'face' });
+add('head', cone(P(0, 1.548, .081), P(0, 1.527, .089), .004 * S, .006 * S), { k: .014, color: D.skin, bones: { head: 1 }, tag: 'face' });
 add('head', mirror(ell(P(.084, 1.556, -.006), [.011 * S, .023 * S, .016 * S], [0, .3, 0])), { k: .012, color: D.skin, bones: { head: 1 }, tag: 'skin' });
-add('head', cone(P(0, 1.37, -.01), P(0, 1.5, -.012), .035 * S, .034 * S), { k: .03, color: D.skin, bones: (x, y) => { const t = sstep(1.42 * S, 1.5 * S, y); return { neck: 1 - t, head: t }; }, tag: 'skin' });
+add('head', cone(P(0, 1.37, -.01), P(0, 1.5, -.014), (F ? .031 : .034) * S, (F ? .03 : .032) * S), { k: .03, color: D.skin, bones: (x, y) => { const t = sstep(1.42 * S, 1.5 * S, y); return { neck: 1 - t, head: t }; }, tag: 'skin' });
 sub('head', mirror(ell(P(.036, 1.567, .1), [.03 * S, .017 * S, .02 * S])), .02);
 const capC = P(0, 1.6, -.012), capR = [.096 * S, .106 * S, .103 * S];
 const hairCap = bound((x, y, z) => smax(ell(capC, capR)(x, y, z), -rbox(P(0, 1.52, .12), [.074 * S, .068 * S, .1 * S], .03)(x, y, z), .03), [-.11 * S, 1.48 * S, -.13 * S, .11 * S, 1.72 * S, .1 * S]);
@@ -341,13 +343,13 @@ if (which === 'haru') {
     hug(az, el, az + (az - Math.PI) * .12, el - .5 - len * 2.5 * back, .03 + rnd() * .006, { lift1: lift, ext: .035 + rnd() * .03, drop: .01, flat: .5 });
   }
   // bangs: seven locks fall over the forehead, the centre ones longer, tips parting over the eyes
-  [[-.62, .05], [-.42, -.02], [-.21, -.1], [0, -.16], [.2, -.08], [.4, -.02], [.6, .05]].forEach(([az, el1], i) =>
+  [[-.62, .17], [-.42, .12], [-.21, .07], [0, -.07], [.2, .06], [.4, .12], [.6, .17]].forEach(([az, el1], i) =>
     hug(az * .85, 1.05, az * 1.05 + (i % 2 ? .05 : -.05), el1, .03, { lift0: .02, lift1: .07, ext: .018, drop: .006, flat: .38, from: .8 }));
   for (const s of [1, -1]) { hug(s * 1.1, .6, s * 1.2, -.4, .03, { lift1: .06, ext: .03, flat: .4, from: .7 }); hug(s * 1.45, .5, s * 1.6, -.45, .032, { lift1: .12, ext: .04, flat: .45 }); }
-  for (let i = 0; i < 5; i++) hug(Math.PI + (i - 2) * .3, 1.3, Math.PI + (i - 2) * .45, .6, .034, { lift0: .04, lift1: .32, ext: .05, flat: .5 }); // crown spikes
+  for (let i = 0; i < 5; i++) hug(Math.PI + (i - 2) * .3, 1.3, Math.PI + (i - 2) * .45, .6, .032, { lift0: .03, lift1: .17, ext: .03, flat: .5 }); // crown spikes
 } else {
   // long side-swept bangs, face-framing locks and a high ponytail on a spring chain
-  [[-.6, .0], [-.38, -.08], [-.16, -.14], [.06, -.16], [.28, -.1], [.5, -.02], [.7, .05]].forEach(([az, el1], i) =>
+  [[-.6, .15], [-.38, .1], [-.16, -.05], [.06, .05], [.28, .11], [.5, .15], [.7, .17]].forEach(([az, el1], i) =>
     hug(az * .7 - .1, 1.12, az + .22, el1, .03, { lift0: .02, lift1: .07, ext: .02, drop: .008, flat: .36, from: .75 }));
   for (const s of [1, -1]) {
     lock([skull(s * .95, .7, .02), skull(s * 1.05, .1, .07), skull(s * 1.05, -.45, .12), add3(skull(s * 1.0, -.6, .14), [0, -.12 * S, .02])], .028, { flat: .38, from: .55, seg: 16 });
@@ -361,8 +363,6 @@ if (which === 'haru') {
     const a = (i / 9) * Math.PI * 2, o = [Math.cos(a) * .02, 0, Math.sin(a) * .014], sp = .5 + rnd() * .7;
     lock([add3(tie, [o[0], 0, o[2]]), P(o[0] * 3 * sp, 1.66, -.15 + o[2]), P(o[0] * 3.4 * sp, 1.5, -.19 + o[2]), P(o[0] * 2.8 * sp, 1.33, -.2 + o[2]), P(o[0] * 1.4 + (rnd() - .5) * .03, 1.14 - rnd() * .06, -.19)], .038, { flat: .55, bones: tb, seg: 22, from: .45 });
   }
-  lock([add3(tie, [-.025, -.005, .02]), add3(tie, [0, .012, .0]), add3(tie, [.025, -.005, .02])], .016, { flat: .9, tip: 0xa8243a, from: 0 }); // the cord tie
-  lock([add3(tie, [0, 0, -.005]), add3(tie, [-.04, -.03, -.03]), add3(tie, [-.05, -.08, -.03])], .018, { flat: .3, tip: 0xc23048, from: 0 });
 }
 
 // ---------- merge into one skinned geometry ----------
@@ -393,46 +393,58 @@ let faceTex = null;
 const px = x => (.5 + x * S / faceW) * FS, py = y => (.5 - (y * S - faceY) / faceW) * FS;
 function drawFace({ blink = 0, mouth = 'calm', brow = 'calm' } = {}) {
   if (!canvas) return; canvas.width = canvas.height = FS; const g = canvas.getContext('2d'); g.clearRect(0, 0, FS, FS);
-  const eyeY = 1.566, eyeX = .037, ew = .025, eh = (D.female ? .021 : .019);
+  // anime eye: big layered iris, heavy winged upper lash, lid crease, short outer lower lash, three highlights
+  const eyeY = 1.563, eyeX = .036, ew = .027, eh = D.female ? .026 : .023, k = FS * S / faceW;
+  const fierce = brow === 'fierce' ? 1 : 0, pain = brow === 'pain' ? 1 : 0;
   g.lineCap = 'round'; g.lineJoin = 'round';
   for (const s of [1, -1]) {
-    const cx = px(s * eyeX), cy = py(eyeY), W = ew / faceW * FS * S, H = eh / faceW * FS * S;
-    const open = 1 - blink, fierce = brow === 'fierce' ? 1 : 0;
-    // blush
-    g.fillStyle = D.blush; g.beginPath(); g.ellipse(px(s * .05), py(1.535), W * .9, H * .35, 0, 0, Math.PI * 2); g.fill();
+    const W = ew * k, Hh = eh * k, cx = px(s * eyeX), cy = py(eyeY), open = 1 - blink;
+    // blush: a faint glow with three short hatch strokes
+    g.save(); g.translate(px(s * .047), py(1.533)); g.scale(s, 1);
+    const bg = g.createRadialGradient(0, 0, 0, 0, 0, W * .9); bg.addColorStop(0, D.blush); bg.addColorStop(1, 'rgba(255,120,120,0)'); g.fillStyle = bg; g.beginPath(); g.ellipse(0, 0, W * .95, W * .42, 0, 0, 7); g.fill();
+    g.strokeStyle = 'rgba(215,95,95,.32)'; g.lineWidth = W * .05; for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(i * W * .28 - W * .07, W * .11); g.lineTo(i * W * .28 + W * .07, -W * .11); g.stroke(); }
+    g.restore();
+    g.save(); g.translate(cx, cy); g.scale(s, 1);
     if (open > .15) {
-      g.save(); g.translate(cx, cy); g.scale(s, 1);
-      const top = -H * open * (1 - fierce * .18), bot = H * .78 * open;
-      g.beginPath(); g.moveTo(-W, -H * .05); g.bezierCurveTo(-W * .55, top * 1.25, W * .5, top * 1.2, W * 1.02, top * .35 + H * .1 * fierce); g.bezierCurveTo(W * .9, bot * .6, -W * .4, bot * 1.1, -W, -H * .05); g.closePath();
-      g.fillStyle = '#fbf6f2'; g.fill(); g.save(); g.clip();
-      const ir = W * .62, iy = H * .12 * open; const grad = g.createLinearGradient(0, iy - ir * 1.2, 0, iy + ir * 1.2);
-      grad.addColorStop(0, D.eye[0]); grad.addColorStop(.55, D.eye[1]); grad.addColorStop(1, D.eye[2]);
-      g.fillStyle = grad; g.beginPath(); g.ellipse(-W * .02, iy, ir * .86, ir * 1.12, 0, 0, Math.PI * 2); g.fill();
-      g.lineWidth = W * .07; g.strokeStyle = D.eye[0]; g.stroke();
-      g.fillStyle = D.eye[0]; g.beginPath(); g.ellipse(-W * .02, iy + ir * .05, ir * .34, ir * (fierce ? .5 : .55), 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(-W * 1.2, top * 1.3, W * 2.4, H * .5); // upper-lid shadow
-      g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(W * .22, iy - ir * .45, ir * .26, ir * .2, -.5, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.ellipse(-W * .28, iy + ir * .5, ir * .1, ir * .08, 0, 0, Math.PI * 2); g.fill();
+      const lidTop = -Hh * (1 - fierce * .22 - pain * .15), lidBot = Hh * .62;
+      const shape = () => { g.beginPath(); g.moveTo(-W * .98, Hh * .08); g.bezierCurveTo(-W * .6, lidTop * 1.05, W * .45, lidTop * 1.1, W * 1.0, lidTop * .35 + Hh * .18 * fierce); g.bezierCurveTo(W * .85, lidBot * .9, -W * .35, lidBot * 1.05, -W * .98, Hh * .08); g.closePath(); };
+      shape(); const sg = g.createLinearGradient(0, lidTop, 0, lidBot); sg.addColorStop(0, '#c4cad8'); sg.addColorStop(.38, '#fbf8f6'); sg.addColorStop(1, '#ffffff'); g.fillStyle = sg; g.fill();
+      g.save(); shape(); g.clip();
+      const ir = W * .6, iy = Hh * .1, irh = ir * 1.18, ix = -W * .04;
+      const ig = g.createLinearGradient(0, iy - irh, 0, iy + irh); ig.addColorStop(0, D.eye[0]); ig.addColorStop(.42, D.eye[1]); ig.addColorStop(.8, D.eye[2]); ig.addColorStop(1, D.eye[1]);
+      g.fillStyle = ig; g.beginPath(); g.ellipse(ix, iy, ir, irh, 0, 0, 7); g.fill();
+      g.fillStyle = 'rgba(10,8,20,.45)'; g.beginPath(); g.ellipse(ix, iy - irh * .58, ir * 1.05, irh * .55, 0, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(255,255,255,.16)'; g.lineWidth = W * .025; for (let i = 0; i < 9; i++) { const a = Math.PI * (.15 + i * .08); g.beginPath(); g.moveTo(ix + Math.cos(a) * ir * .45, iy + Math.sin(a) * irh * .45); g.lineTo(ix + Math.cos(a) * ir * .92, iy + Math.sin(a) * irh * .92); g.stroke(); }
+      g.lineWidth = W * .06; g.strokeStyle = D.eye[0]; g.beginPath(); g.ellipse(ix, iy, ir, irh, 0, 0, 7); g.stroke();
+      g.fillStyle = '#0b0710'; g.beginPath(); g.ellipse(ix, iy + irh * .05, ir * (fierce ? .22 : .34), irh * (fierce ? .5 : .52), 0, 0, 7); g.fill();
+      g.fillStyle = '#fff'; g.beginPath(); g.ellipse(W * .18, iy - irh * .42, ir * .3, irh * .2, -.4, 0, 7); g.fill();
+      g.beginPath(); g.ellipse(-W * .3, iy + irh * .45, ir * .12, irh * .08, 0, 0, 7); g.fill();
+      g.globalAlpha = .8; g.beginPath(); g.arc(-W * .18, iy - irh * .1, ir * .06, 0, 7); g.fill(); g.globalAlpha = 1;
       g.restore();
-      // upper lash line: heavy, flicked at the outer corner
-      g.beginPath(); g.moveTo(-W * 1.08, H * .02); g.bezierCurveTo(-W * .55, top * 1.32, W * .5, top * 1.28, W * 1.1, top * .3 + H * .1 * fierce); g.lineTo(W * 1.32, top * .55 + (D.female ? -H * .25 : 0));
-      g.lineWidth = H * .26; g.strokeStyle = D.lash; g.stroke();
-      g.beginPath(); g.moveTo(-W * .55, bot * 1.02); g.quadraticCurveTo(W * .3, bot * 1.08, W * .85, bot * .55); g.lineWidth = H * .07; g.strokeStyle = 'rgba(60,30,30,.6)'; g.stroke();
-      g.restore();
+      g.fillStyle = D.lash; g.beginPath(); g.moveTo(-W * 1.04, Hh * .1); g.bezierCurveTo(-W * .6, lidTop * 1.18, W * .45, lidTop * 1.24, W * 1.06, lidTop * .32 + Hh * .18 * fierce);
+      g.lineTo(W * 1.3, lidTop * .62 - (D.female ? Hh * .3 : Hh * .05)); g.lineTo(W * 1.02, lidTop * .12 + Hh * .22 * fierce); g.bezierCurveTo(W * .45, lidTop * .96, -W * .6, lidTop * .88, -W * .98, Hh * .17); g.closePath(); g.fill();
+      if (D.female) for (const t of [.52, .78]) { g.beginPath(); g.moveTo(W * t, lidTop * .86); g.lineTo(W * (t + .2), lidTop * 1.3); g.lineWidth = Hh * .07; g.strokeStyle = D.lash; g.stroke(); }
+      g.beginPath(); g.moveTo(-W * .45, lidTop * 1.45); g.quadraticCurveTo(W * .2, lidTop * 1.62, W * .85, lidTop * 1.12); g.lineWidth = Hh * .05; g.strokeStyle = 'rgba(90,40,40,.5)'; g.stroke();
+      g.beginPath(); g.moveTo(W * .12, lidBot); g.quadraticCurveTo(W * .6, lidBot * .98, W * .92, lidBot * .5); g.lineWidth = Hh * .08; g.strokeStyle = 'rgba(50,25,30,.72)'; g.stroke();
     } else {
-      g.save(); g.translate(cx, cy); g.scale(s, 1); g.beginPath(); g.moveTo(-W, 0); g.quadraticCurveTo(0, H * .45, W * 1.1, -H * .05); g.lineWidth = H * .2; g.strokeStyle = D.lash; g.stroke(); g.restore();
+      g.beginPath(); g.moveTo(-W, Hh * .05); g.quadraticCurveTo(0, Hh * .45, W * 1.1, 0); g.lineTo(W * 1.3, -Hh * .15); g.lineWidth = Hh * .22; g.strokeStyle = D.lash; g.stroke();
+      g.beginPath(); g.moveTo(-W * .4, Hh * .5); g.quadraticCurveTo(W * .2, Hh * .6, W * .7, Hh * .45); g.lineWidth = Hh * .05; g.strokeStyle = 'rgba(90,40,40,.45)'; g.stroke();
     }
-    // brow
-    g.save(); g.translate(px(s * .037), py(1.598)); g.scale(s, 1); g.rotate(fierce ? .32 : -.06);
-    g.beginPath(); g.moveTo(-W * .9, fierce ? 0 : H * .1); g.quadraticCurveTo(0, -H * .32, W * 1.05, H * .1); g.lineWidth = H * (D.female ? .15 : .21); g.strokeStyle = D.female ? '#9a8ea8' : '#1a1820'; g.stroke(); g.restore();
+    g.restore();
+    // brows: thin and tapered, angled by expression
+    g.save(); g.translate(px(s * .037), py(1.6)); g.scale(s, 1); g.rotate(fierce ? .3 : pain ? -.25 : -.05);
+    g.beginPath(); g.moveTo(-W * .85, Hh * .05); g.quadraticCurveTo(0, -Hh * .3, W * 1.05, Hh * .12); g.quadraticCurveTo(0, -Hh * .1, -W * .85, Hh * .2); g.closePath();
+    g.fillStyle = D.female ? '#8a7f9a' : '#18161e'; g.fill(); g.restore();
   }
-  // nose hint and mouth
-  g.strokeStyle = 'rgba(150,80,70,.55)'; g.lineWidth = 4; g.beginPath(); g.moveTo(px(.004), py(1.534)); g.lineTo(px(-.002), py(1.528)); g.stroke();
-  const my = py(1.502), mw = .012 / faceW * FS * S;
-  if (mouth === 'shout') { g.fillStyle = '#5a1a20'; g.beginPath(); g.ellipse(px(0), my + 6, mw * .9, mw * .62, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = '#f4ece6'; g.fillRect(px(0) - mw * .7, my - mw * .48, mw * 1.4, mw * .2); g.fillStyle = '#d8676a'; g.beginPath(); g.ellipse(px(0), my + mw * .38, mw * .5, mw * .18, 0, 0, Math.PI * 2); g.fill(); }
-  else if (mouth === 'grit') { g.strokeStyle = '#4a2026'; g.lineWidth = 6; g.beginPath(); g.moveTo(px(-.011), my - 2); g.lineTo(px(.011), my + 2); g.stroke(); }
-  else if (mouth === 'smile') { g.strokeStyle = '#6a2c30'; g.lineWidth = 5; g.beginPath(); g.moveTo(px(-.01), my - 4); g.quadraticCurveTo(px(0), my + 8, px(.01), my - 4); g.stroke(); }
-  else { g.strokeStyle = '#6a2c30'; g.lineWidth = 5; g.beginPath(); g.moveTo(px(-.0075), my); g.quadraticCurveTo(px(0), my + 2, px(.0075), my - 1); g.stroke(); }
+  // nose: one small side shadow
+  g.fillStyle = 'rgba(170,95,85,.42)'; g.beginPath(); g.moveTo(px(-.0015), py(1.539)); g.lineTo(px(-.0068), py(1.528)); g.lineTo(px(.0012), py(1.529)); g.closePath(); g.fill();
+  // mouth
+  const my = py(1.497), mw = .011 * k, mx = px(0);
+  g.lineCap = 'round';
+  if (mouth === 'shout') { g.fillStyle = '#4a141a'; g.beginPath(); g.moveTo(mx - mw * .85, my - mw * .35); g.quadraticCurveTo(mx, my - mw * .55, mx + mw * .85, my - mw * .35); g.quadraticCurveTo(mx + mw * .5, my + mw * .9, mx, my + mw * .95); g.quadraticCurveTo(mx - mw * .5, my + mw * .9, mx - mw * .85, my - mw * .35); g.fill(); g.fillStyle = '#f6efe9'; g.fillRect(mx - mw * .62, my - mw * .44, mw * 1.24, mw * .2); g.fillStyle = '#c85a62'; g.beginPath(); g.ellipse(mx, my + mw * .62, mw * .42, mw * .2, 0, 0, 7); g.fill(); }
+  else if (mouth === 'grit') { g.fillStyle = '#f4ece6'; g.strokeStyle = '#3e1a20'; g.lineWidth = mw * .1; g.beginPath(); g.moveTo(mx - mw * .7, my - mw * .12); g.lineTo(mx + mw * .7, my - mw * .2); g.lineTo(mx + mw * .62, my + mw * .2); g.lineTo(mx - mw * .62, my + mw * .22); g.closePath(); g.fill(); g.stroke(); g.beginPath(); g.moveTo(mx - mw * .65, my + mw * .02); g.lineTo(mx + mw * .65, my - mw * .02); g.lineWidth = mw * .05; g.stroke(); }
+  else if (mouth === 'smile') { g.strokeStyle = '#5e262c'; g.lineWidth = mw * .12; g.beginPath(); g.moveTo(mx - mw * .7, my - mw * .1); g.quadraticCurveTo(mx, my + mw * .45, mx + mw * .75, my - mw * .22); g.stroke(); }
+  else { g.strokeStyle = '#5e262c'; g.lineWidth = mw * .11; g.beginPath(); g.moveTo(mx - mw * .5, my); g.quadraticCurveTo(mx, my + mw * .12, mx + mw * .5, my - mw * .03); g.stroke(); g.strokeStyle = 'rgba(190,110,110,.35)'; g.lineWidth = mw * .08; g.beginPath(); g.moveTo(mx - mw * .25, my + mw * .35); g.lineTo(mx + mw * .25, my + mw * .35); g.stroke(); }
   if (faceTex) faceTex.needsUpdate = true;
 }
 if (canvas) { drawFace(); faceTex = new THREE.CanvasTexture(canvas); faceTex.colorSpace = THREE.SRGBColorSpace; faceTex.anisotropy = 4; }

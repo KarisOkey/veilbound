@@ -55,17 +55,17 @@
           37
         ],
         "height": 1.68,
-        "fps": 50.86735359332198,
+        "fps": 60.00558191459675,
         "speed": 0,
         "score": 0,
         "over": false,
         "draws": 77,
-        "tris": 977428,
+        "tris": 931496,
         "started": true,
         "evening": false,
         "texturesLoaded": 13,
         "grassBlades": 26634,
-        "windTime": 3.9664999999999933,
+        "windTime": 2.6164999999999985,
         "view": "Whispering Thicket"
       }
     },
@@ -123,17 +123,17 @@
           32
         ],
         "height": 1.68,
-        "fps": 59.99720943211907,
+        "fps": 59.99720943211938,
         "speed": 0,
         "score": 1,
         "over": false,
         "draws": 93,
-        "tris": 742470,
+        "tris": 696538,
         "started": true,
         "evening": false,
         "texturesLoaded": 12,
         "grassBlades": 0,
-        "windTime": 21.38219999999976,
+        "windTime": 17.365799999999854,
         "view": "Reedwater Crossing"
       }
     },
@@ -191,17 +191,17 @@
           29
         ],
         "height": 1.68,
-        "fps": 44.655316773653,
+        "fps": 59.99720943211907,
         "speed": 0,
         "score": 2,
         "over": false,
         "draws": 89,
-        "tris": 1052618,
+        "tris": 1006686,
         "started": true,
         "evening": false,
         "texturesLoaded": 12,
         "grassBlades": 0,
-        "windTime": 34.84839999999956,
+        "windTime": 30.881899999999483,
         "view": "The Folded Court"
       }
     }

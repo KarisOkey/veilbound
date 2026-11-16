@@ -2,6 +2,44 @@
 
 Read this first, then `CLAUDE.md` for setup, the code map and the recipe rules.
 
+## Latest session (2026-11-16): trailer v4, character rebuild, research
+
+- **Research:** `reports/Anime fight location transitions.md` (notes in `research_notes/Anime fight location transitions/`). Productions never move a duel with a long two-person jump. They change place on the cut or through a cause: a knock-through, a fall, the world changing around the fighters, or a match on action. Any remaining airtime is short (about 0.6 s), with a crouch, a fall faster than the rise, and a hard landing.
+- **Characters (user said they felt stiff, with legs stuck under a skirt and odd faces):**
+  - `fighter.js`: divided uniform trousers tucked into white leg wraps at mid-calf, no crotch fill, wider hips, and a haori that stops at the upper thigh with side slits. Lighter sleeves.
+  - Head reshaped to an anime structure: narrower V jaw, pointed chin, smaller cheeks, thinner neck.
+  - Face repainted: big layered irises, a winged heavy upper lash, lid crease, three highlights, hatched blush, a side-shadow nose and new mouth shapes. Bangs raised so the brows show.
+  - `fighter-moves.js`: the torso twists, leans and arches toward the sword grip, and the clavicles shrug and protract with the hands, so the body drives the blade.
+- **Trailer v4 (`game/trailer.js`, about 1:19; the user allowed up to 1:30):**
+  - Title, then a tour of all seven worlds: one travelling shot each with a kanji card, using per-shot `exposure` for dark worlds.
+  - The Sanctuary introduction: crane, the pair, bow, draw, VS.
+  - One continuous duel:
+    - Sanctuary: a push-off then a cut into the waterfall garden, with birds bursting out.
+    - Lamplight Avenue: entered on a match cut mid-slash. Dash exchanges with rain splashes, then a gas lamp shattered into an orange flash.
+    - Burning Rooftops: ridge hops, Thousand Toll, and a burning beam crashing between the fighters. A kick breaks the roof.
+    - Endless Keep: Haru falls in, Ember Bell Descent, a vertigo shot, the only blade lock, then Sky-Current Crescent for the KO.
+  - Tagline and end card.
+  - Each location has its own camera palette.
+- `game/env-fx.js`: the reactive environment. Clash and hit lights, lingering scars, leaves, birds, rain splashes, embers, the gas lamp and the falling beam.
+- combat.js: `leapTo` modes `leap|hop|fall` with a crouch delay, an asymmetric arc and staggered fighters; `autoLock` (the trailer turns automatic locks off).
+- Not done yet: sound, a closing seven-world montage, and the soaked, ash and scuff marks on the fighters.
+
+## Latest session (2026-11-13): the trailer
+
+The user wants a trailer-style video in the manner of the Hinokami Chronicles Steam trailer. Each round is in a different environment. Before each fight, the camera pans to reveal the environment's locations, then shows the two characters; they bow, unsheathe their swords and fight. The study and the beat-by-beat mapping are in `references/trailer-study.md`.
+
+- `game/trailer.js` (loaded only with `?trailer`) is the director, now v3 (2026-11-14, 1:04, the user's limit is 1:10).
+  - **One introduction:** in Cloudveil Sanctuary only, the landmark pans and crane lead to the pair, the bow, the draw, then the VS splash. The name-card close-ups were removed as redundant.
+  - **Continuous fight:** Lamplight Avenue, the Burning Rooftops and the Nightwright's Meridian follow. Each world ends on a launch into a white-out, and the pair drops into the next from the sky mid-fight.
+  - **Roaming:** in every world the duel leaps (`combat.leapTo`) to an open-sky landmark found from the world's views and story spots, crosses blades at the top of the arc and lands there.
+  - **Cinematographer:** a rotation of wides (establishing, crane, overhead, orbit) and close-ups (faces, over-the-shoulder, worm's-eye, Dutch tilt, blades-in-frame) fills the space between the duel camera's event shots.
+  - **Ending:** "VEILBOUND / An Original Adventure".
+- Fighters (game-wide): `fighter-moves.js` has a fluid layer (hips lead, and spine, chest, head and free hands follow on critically damped springs, plus a live fighting rhythm in stance) and two new arts. Haru's Rising Tempest 天嵐 is a launcher, three spinning air cuts and a plunging spike. Mitsuki's Thousand Toll 千鐘 is three dash-through cuts and a spinning finisher. Arts alternate when the gauge fills (`doArt`), and `force(who,'art2')` triggers the new ones. combat.js has `roam`, `leapTo` and `traveling`.
+- `?capture` makes main.js step only when `window.__STEP__(n, fps)` is called. `window.__CAM_OVERRIDE__` lets a director supply the render camera.
+- combat.js: the `cinema` flag (stops exploration logic from posing the fighters) and `start({ splash, quiet, draw, intro, introCam, round })`. fighter-moves.js: the bow is now a deep formal rei.
+- `node tools/trailer-capture.mjs [--rounds 0,1] [--w 960 --h 540 --every 6 --noencode 1]` gives quick previews. A full render writes 1080p30 H.264. Finished videos go to `~/Pictures/WORK/Veilbound/` (not the repo): v1 is the old four-round cut; v2 is the continuous fight.
+- Still to do: music and sound effects (use an AI SFX model or the user's samples, and quote the cost first).
+
 ## Latest session (2026-11-12): action combat v2, built against the Hinokami Chronicles trailer
 
 The user watched the first spar and said: the scabbards pass through the bodies, the camera is static behind the character, the sparring is "very mid", swords fly everywhere; they want an action fighting-game trailer feel (the Steam trailer at `~/Downloads/Demon Slayer -Kimetsu no Yaiba- The Hinokami Chronicles on Steam.mp4`, studied frame by frame: gameplay 22–50 s), extreme detail in the sword combat, defence and fighting beyond swords, and "flying screen animations". All of that is now in. Original content only (names, kanji, arts are ours).

@@ -36,19 +36,19 @@
         37
       ],
       "height": 1.68,
-      "fps": 26.51039486535514,
+      "fps": 60.005581914596675,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 77,
-      "tris": 977428,
+      "tris": 931496,
       "started": true,
       "evening": false,
       "texturesLoaded": 13,
       "grassBlades": 26634,
-      "windTime": 5.4163999999999985,
+      "windTime": 4.349699999999997,
       "view": "Whispering Thicket",
-      "walkDistance": 5.004779999999986
+      "walkDistance": 4.949999999999953
     },
     {
       "duel": {
@@ -85,19 +85,19 @@
         32
       ],
       "height": 1.68,
-      "fps": 23.47724011999476,
+      "fps": 60.005581914596675,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 93,
-      "tris": 742470,
+      "tris": 696538,
       "started": true,
       "evening": false,
       "texturesLoaded": 12,
       "grassBlades": 0,
-      "windTime": 10.549600000000005,
+      "windTime": 8.966200000000022,
       "view": "Reedwater Crossing",
-      "walkDistance": 5.004449999999981
+      "walkDistance": 4.949669999999973
     },
     {
       "duel": {
@@ -139,14 +139,14 @@
       "score": 0,
       "over": false,
       "draws": 89,
-      "tris": 1052618,
+      "tris": 1006686,
       "started": true,
       "evening": false,
       "texturesLoaded": 12,
       "grassBlades": 0,
-      "windTime": 14.965999999999937,
+      "windTime": 13.43279999999996,
       "view": "The Folded Court",
-      "walkDistance": 4.894560000000023
+      "walkDistance": 5.004780000000018
     },
     {
       "duel": {
@@ -183,19 +183,19 @@
         40
       ],
       "height": 1.68,
-      "fps": 57.21462461624349,
+      "fps": 59.99720943211968,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 110,
-      "tris": 633430,
+      "tris": 587498,
       "started": true,
       "evening": false,
       "texturesLoaded": 14,
       "grassBlades": 0,
-      "windTime": 19.86549999999992,
+      "windTime": 18.11609999999983,
       "view": "Lamplight Avenue",
-      "walkDistance": 5.005110000000023
+      "walkDistance": 4.949669999999941
     },
     {
       "duel": {
@@ -232,19 +232,19 @@
         45
       ],
       "height": 1.68,
-      "fps": 59.99720943211907,
+      "fps": 59.99720943211938,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 112,
-      "tris": 549020,
+      "tris": 503088,
       "started": true,
       "evening": false,
       "texturesLoaded": 16,
       "grassBlades": 0,
-      "windTime": 24.51539999999972,
+      "windTime": 22.665999999999727,
       "view": "The forecourt",
-      "walkDistance": 4.949670000000054
+      "walkDistance": 4.949669999999884
     },
     {
       "duel": {
@@ -281,19 +281,19 @@
         10.5
       ],
       "height": 1.68,
-      "fps": 59.99720943211907,
+      "fps": 60.00558191459683,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 86,
-      "tris": 735668,
+      "tris": 689736,
       "started": true,
       "evening": false,
       "texturesLoaded": 14,
       "grassBlades": 0,
-      "windTime": 29.181999999999555,
+      "windTime": 27.282699999999565,
       "view": "The roof terrace",
-      "walkDistance": 4.949670000000012
+      "walkDistance": 4.949339999999998
     },
     {
       "duel": {
@@ -330,19 +330,19 @@
         40
       ],
       "height": 1.68,
-      "fps": 36.28244487859343,
+      "fps": 60.00558191459683,
       "speed": 0,
       "score": 0,
       "over": false,
-      "draws": 122,
-      "tris": 1178154,
+      "draws": 123,
+      "tris": 1132234,
       "started": true,
       "evening": false,
       "texturesLoaded": 14,
       "grassBlades": 27604,
-      "windTime": 33.9649999999995,
+      "windTime": 31.99909999999938,
       "view": "The hamlet road",
-      "walkDistance": 4.949669999999983
+      "walkDistance": 4.950000000000024
     },
     {
       "duel": {
@@ -379,19 +379,19 @@
         44
       ],
       "height": 1.68,
-      "fps": 32.091530626482296,
+      "fps": 60.00558191459683,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 99,
-      "tris": 1346981,
+      "tris": 1301049,
       "started": true,
       "evening": false,
       "texturesLoaded": 13,
       "grassBlades": 25537,
-      "windTime": 38.91459999999959,
+      "windTime": 36.68219999999967,
       "view": "The cedar trail",
-      "walkDistance": 5.004780000000018
+      "walkDistance": 4.949999999999989
     },
     {
       "duel": {
@@ -428,19 +428,19 @@
         30
       ],
       "height": 1.68,
-      "fps": 32.091530626482296,
+      "fps": 60.00558191459622,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 90,
-      "tris": 1117588,
+      "tris": 1071656,
       "started": true,
       "evening": false,
       "texturesLoaded": 12,
       "grassBlades": 29670,
-      "windTime": 44.11409999999968,
+      "windTime": 41.39859999999992,
       "view": "The basin stair",
-      "walkDistance": 4.894890000000011
+      "walkDistance": 4.949999999999964
     },
     {
       "duel": {
@@ -477,19 +477,19 @@
         30
       ],
       "height": 1.68,
-      "fps": 43.253802148737,
+      "fps": 59.99720943211907,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 103,
-      "tris": 510972,
+      "tris": 465040,
       "started": true,
       "evening": false,
       "texturesLoaded": 14,
       "grassBlades": 0,
-      "windTime": 49.196999999999875,
+      "windTime": 46.065200000000175,
       "view": "Hollowmoor forecourt",
-      "walkDistance": 5.004450000000034
+      "walkDistance": 4.949999999999996
     },
     {
       "duel": {
@@ -526,19 +526,19 @@
         40
       ],
       "height": 1.68,
-      "fps": 59.99720943211846,
+      "fps": 60.00558191459683,
       "speed": 0,
       "score": 0,
       "over": false,
-      "draws": 244,
-      "tris": 579614,
+      "draws": 253,
+      "tris": 561126,
       "started": true,
       "evening": false,
       "texturesLoaded": 14,
       "grassBlades": 0,
-      "windTime": 54.213500000000025,
+      "windTime": 50.698400000000476,
       "view": "Third-class carriage",
-      "walkDistance": 4.94802000000017
+      "walkDistance": 4.9496700000000615
     },
     {
       "duel": {
@@ -575,19 +575,19 @@
         36
       ],
       "height": 1.68,
-      "fps": 30.001363698349806,
+      "fps": 60.00558191459683,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 117,
-      "tris": 2534754,
+      "tris": 2488822,
       "started": true,
       "evening": false,
       "texturesLoaded": 14,
       "grassBlades": 455733,
-      "windTime": 59.61240000000018,
+      "windTime": 55.39830000000081,
       "view": "The dawn plain",
-      "walkDistance": 4.8948899999999504
+      "walkDistance": 5.004780000000001
     },
     {
       "duel": {
@@ -624,19 +624,19 @@
         44
       ],
       "height": 1.68,
-      "fps": 24.54657029864984,
+      "fps": 60.00558191459622,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 188,
-      "tris": 582220,
+      "tris": 558128,
       "started": true,
       "evening": false,
       "texturesLoaded": 14,
       "grassBlades": 0,
-      "windTime": 64.8617000000002,
+      "windTime": 59.998100000001095,
       "view": "The embankment road",
-      "walkDistance": 4.950000000000017
+      "walkDistance": 4.950000000000188
     },
     {
       "duel": {
@@ -673,19 +673,19 @@
         52
       ],
       "height": 1.68,
-      "fps": 34.87723214285771,
+      "fps": 59.99720943211968,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 102,
-      "tris": 900228,
+      "tris": 854296,
       "started": true,
       "evening": false,
       "texturesLoaded": 14,
       "grassBlades": 0,
-      "windTime": 70.11120000000032,
+      "windTime": 64.66440000000144,
       "view": "The Avenue of Blossoms",
-      "walkDistance": 4.949340000000059
+      "walkDistance": 4.950000000000119
     },
     {
       "duel": {
@@ -722,19 +722,19 @@
         26
       ],
       "height": 1.68,
-      "fps": 25.91026864857483,
+      "fps": 60.00558191459622,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 99,
-      "tris": 1372378,
+      "tris": 1326446,
       "started": true,
       "evening": false,
       "texturesLoaded": 14,
       "grassBlades": 0,
-      "windTime": 74.97740000000047,
+      "windTime": 69.31430000000243,
       "view": "The drying deck",
-      "walkDistance": 4.949670000000019
+      "walkDistance": 4.95000000000007
     },
     {
       "duel": {
@@ -771,19 +771,19 @@
         45
       ],
       "height": 1.68,
-      "fps": 22.32454304450965,
+      "fps": 60.005581914597435,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 99,
-      "tris": 2228098,
+      "tris": 2182166,
       "started": true,
       "evening": false,
       "texturesLoaded": 16,
       "grassBlades": 0,
-      "windTime": 80.09360000000049,
+      "windTime": 74.06390000000347,
       "view": "The bridge plaza",
-      "walkDistance": 4.39922999999996
+      "walkDistance": 4.949670000000218
     },
     {
       "duel": {
@@ -820,19 +820,19 @@
         40
       ],
       "height": 1.68,
-      "fps": 25.115110925073353,
+      "fps": 59.99720943211846,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 107,
-      "tris": 2179380,
+      "tris": 2133448,
       "started": true,
       "evening": false,
       "texturesLoaded": 16,
       "grassBlades": 0,
-      "windTime": 85.09290000000043,
+      "windTime": 78.69720000000446,
       "view": "The smiths’ lane",
-      "walkDistance": 5.058569999999946
+      "walkDistance": 4.949670000000168
     },
     {
       "duel": {
@@ -869,19 +869,19 @@
         30
       ],
       "height": 1.68,
-      "fps": 20.932179737649843,
+      "fps": 60.00558191459622,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 87,
-      "tris": 2513282,
+      "tris": 2467350,
       "started": true,
       "evening": false,
       "texturesLoaded": 16,
       "grassBlades": 0,
-      "windTime": 90.22490000000023,
+      "windTime": 83.33030000000551,
       "view": "The cedar path",
-      "walkDistance": 5.003790000000048
+      "walkDistance": 4.949670000000047
     },
     {
       "duel": {
@@ -918,19 +918,19 @@
         30
       ],
       "height": 1.68,
-      "fps": 41.864359475299686,
+      "fps": 59.99142979574421,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 131,
-      "tris": 1567720,
+      "tris": 1521788,
       "started": true,
       "evening": false,
       "texturesLoaded": 9,
       "grassBlades": 0,
-      "windTime": 95.22420000000042,
+      "windTime": 87.88010000000651,
       "view": "The arrival bridge",
-      "walkDistance": 4.949670000000079
+      "walkDistance": 4.950000000000067
     },
     {
       "duel": {
@@ -967,19 +967,19 @@
         44
       ],
       "height": 1.68,
-      "fps": 30.700530281886437,
+      "fps": 59.99720943211968,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 97,
-      "tris": 1720658,
+      "tris": 1674726,
       "started": true,
       "evening": false,
       "texturesLoaded": 9,
       "grassBlades": 0,
-      "windTime": 99.95710000000038,
+      "windTime": 92.37990000000747,
       "view": "The inverted corridor",
-      "walkDistance": 5.004779999999961
+      "walkDistance": 4.950000000000188
     },
     {
       "duel": {
@@ -1016,19 +1016,19 @@
         34
       ],
       "height": 1.68,
-      "fps": 27.909572983533124,
+      "fps": 59.99720943211968,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 116,
-      "tris": 1467554,
+      "tris": 1421622,
       "started": true,
       "evening": false,
       "texturesLoaded": 9,
       "grassBlades": 0,
-      "windTime": 104.98980000000033,
+      "windTime": 96.94640000000847,
       "view": "The entry vestibule",
-      "walkDistance": 4.619669999999918
+      "walkDistance": 4.9496700000000935
     },
     {
       "duel": {
@@ -1065,19 +1065,19 @@
         30
       ],
       "height": 1.68,
-      "fps": 44.655316773653,
+      "fps": 60.005581914597435,
       "speed": 0,
       "score": 0,
       "over": false,
-      "draws": 168,
-      "tris": 688992,
+      "draws": 167,
+      "tris": 643058,
       "started": true,
       "evening": false,
       "texturesLoaded": 11,
       "grassBlades": 0,
-      "windTime": 111.0224000000007,
+      "windTime": 101.56290000000946,
       "view": "The descent",
-      "walkDistance": 5.004779999999993
+      "walkDistance": 4.949670000000047
     },
     {
       "duel": {
@@ -1114,19 +1114,19 @@
         24
       ],
       "height": 1.68,
-      "fps": 19.536701088473187,
+      "fps": 59.99720943211846,
       "speed": 0,
       "score": 0,
       "over": false,
       "draws": 138,
-      "tris": 2081032,
+      "tris": 2035100,
       "started": true,
       "evening": false,
       "texturesLoaded": 23,
       "grassBlades": 41705,
-      "windTime": 117.23830000000095,
+      "windTime": 106.09600000001045,
       "view": "Cloudveil Courtyard",
-      "walkDistance": 4.67411999999986
+      "walkDistance": 5.0047800000000855
     }
   ],
   "errors": [],

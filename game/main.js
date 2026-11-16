@@ -6,6 +6,7 @@ import { disposeGroup } from './realms/kit.js';
 import { createCombat } from './combat.js';
 import { createDuelCamera } from './duel-camera.js';
 import { createAnimeFX } from './anime-fx.js';
+const QS=new URLSearchParams(location.search),CAPTURE=QS.has('capture');
 let director=null,fx=null,duelCamOn=false;const viewDir=new THREE.Vector3();
 regionClues.sanctuary=sanctuaryClues;
 const discoveries=[...sanctuaryClues,...allClues];
@@ -100,7 +101,7 @@ try{
  window.__SCENE__={get director(){return director;},get fx(){return fx;},scene,camera,viewCam,get combat(){return combat;},renderer,views,discoveries,getActiveWorld:()=>world,getRegion:()=>chapters[currentRealm]};
  let previous=performance.now(),fpsTime=previous;
  function tick(now){
-   requestAnimationFrame(tick);const raw=(now-previous)/1000;previous=now;const dt=Math.max(0,Math.min(.05,raw));elapsed+=dt;frames++;if(now-fpsTime>700){fps=frames*1000/(now-fpsTime);frames=0;fpsTime=now;}
+   if(!CAPTURE)requestAnimationFrame(tick);const raw=(now-previous)/1000;previous=now;const dt=Math.max(0,Math.min(.05,raw));elapsed+=dt;frames++;if(now-fpsTime>700){fps=frames*1000/(now-fpsTime);frames=0;fpsTime=now;}
    if(realmLoading){window.__GAME__={...window.__GAME__,realmLoading:true};return;}
    if(!started){const a=reduced?0:Math.sin(elapsed*.045);camera.position.set(11+a*1.5,4.2+a*.3,30);orient([0,5,-15]);}
    else if(transition){const t=THREE.MathUtils.clamp((elapsed-transition.start)/transition.duration,0,1),s=t*t*(3-2*t);camera.position.lerpVectors(transition.from,transition.to,s);orient(transition.look.toArray());if(t>=1)transition=null;}
@@ -120,7 +121,7 @@ try{
    }
    speed=lastPosition.distanceTo(camera.position)/Math.max(raw,.001);lastPosition.copy(camera.position);
    if(waterAudioGain)waterAudioGain.gain.setTargetAtTime(Math.max(0,1-Math.hypot(camera.position.x-38.8,camera.position.z+17)/55)*1.3,audioCtx.currentTime,.4);const indoors=currentRealm==='sanctuary'&&started&&Math.abs(camera.position.x)<10.5&&camera.position.z<-10.5&&camera.position.z>-21.5;hemi.intensity=THREE.MathUtils.lerp(hemi.intensity,indoors?.38:(currentRealm==='sanctuary'?(evening?.95:1.45):chapters[currentRealm].theme.ambient),Math.min(1,dt*3));scene.environmentIntensity=indoors?.10:currentRealm==='folded'?.08:(chapters[currentRealm].theme.env??.26);const tp=started&&!transition&&!viewOverride&&!realmLoading;let renderCam=camera;
-   if(combat){combatOut=combat.update(dt,{pos:{x:camera.position.x,z:camera.position.z},ground:(x,z)=>world.walkHeight(x,z),moveDir,moveSpeed:tp?moveSpeed:0,canWalk:(x,z)=>world.canWalk(x,z),visible:tp});pushX=combatOut.dx;pushZ=combatOut.dz;
+   if(combat){combatOut=combat.update(dt,{pos:{x:camera.position.x,z:camera.position.z},ground:(x,z)=>world.walkHeight(x,z),moveDir,moveSpeed:tp?moveSpeed:0,canWalk:(x,z)=>world.canWalk(x,z),visible:tp});pushX=combatOut.dx;pushZ=combatOut.dz;if(combatOut.tp){camera.position.x=combatOut.tp.x;camera.position.z=combatOut.tp.z;pushX=pushZ=0;lastPosition.copy(camera.position);}
      if(!director&&combat.active&&combatOut.yaw!==null){let d=(combatOut.yaw+Math.PI-yaw)%(Math.PI*2);if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;yaw+=d*Math.min(1,raw*2.5);}
      if(tp&&director&&combat.active){renderCam=viewCam;if(!duelCamOn){duelCamOn=true;}director.update(raw,combat.camState(combatOut.timeScale));}
      else if(tp){if(duelCamOn){duelCamOn=false;viewCam.fov=53;viewCam.updateProjectionMatrix();camReady=false;}renderCam=viewCam;const h=combat.hero.position,r=combat.rival.position,duel=combat.active;
@@ -134,6 +135,7 @@ try{
        viewCam.position.lerp(camGoal,Math.min(1,raw*9));camAim.lerp(aimNow,Math.min(1,raw*12));viewCam.lookAt(camAim);
        if(combatOut.shake>0){const k=combatOut.shake*.12;viewCam.position.x+=(Math.random()-.5)*k;viewCam.position.y+=(Math.random()-.5)*k;}
      }else camReady=false;}
+   if(window.__CAM_OVERRIDE__){const oc=window.__CAM_OVERRIDE__(raw,dt);if(oc)renderCam=oc;}
    world.update(elapsed,dt,renderCam);renderer.render(scene,renderCam);fx?.update(raw,dt*(combatOut?.timeScale??1),renderCam);
    if(started&&!realmLoading){const x=camera.position.x,z=camera.position.z;const label=currentRealm!=='sanctuary'?(world.locationAt?.(x,z,camera.position.y)||chapters[currentRealm].name):z<-38?'The Silent Bell':x>21?'The Falling Water':z<-7&&Math.abs(x)<12?'The Training Hall':x<-12?'The Returning Garden':'Cloudveil Courtyard';if(!transition)$('#location-name').textContent=viewOverride||label;
      const a=((yaw*180/Math.PI)%360+360)%360;$('#bearing').textContent=['N','NW','W','SW','S','SE','E','NE'][Math.round(a/45)%8];
@@ -142,6 +144,7 @@ try{
    }
    window.__GAME__={duel:combat?.state(),realm:currentRealm,worldId:chapters[currentRealm].world,realmLoading,arena:chapters[currentRealm].arena.name,pos:[camera.position.x,camera.position.z],height:camera.position.y,fps,speed,score:found.size,over:false,draws:renderer.info.render.calls,tris:renderer.info.render.triangles,started,evening,texturesLoaded:world.texturesLoaded,grassBlades:world.grassBlades,windTime:elapsed,view:$('#location-name').textContent};
  }
- requestAnimationFrame(tick);
+ if(!CAPTURE)requestAnimationFrame(tick);else{let vt=performance.now();previous=vt;fpsTime=vt;window.__STEP__=(n=1,rate=30)=>{for(let k=0;k<n;k++){vt+=1000/rate;tick(vt);}};}
+ if(QS.has('trailer'))import('./trailer.js').then(m=>m.install({THREE,scene,camera,viewCam,renderer,get combat(){return combat;},get fx(){return fx;},get director(){return director;},getWorld:()=>world,regions:chapters,go:changeRealm,place:window.__PLACE__,start:begin})).catch(e=>{console.error(e);window.__LOAD_ERROR__='trailer: '+e.message;});
  window.addEventListener('resize',()=>{camera.aspect=viewCam.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();viewCam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 }catch(error){console.error(error);$('#loading').hidden=true;$('#error').hidden=false;$('#error-text').textContent=error.message;window.__LOAD_ERROR__=error.message;}
