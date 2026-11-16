@@ -83,6 +83,8 @@ tail.forEach((n, i) => { J[n] = tailPts[i]; parents[n] = i ? tail[i - 1] : 'head
 // hanging kimono-sleeve bags and the coat's back panel get their own spring bones
 J.sleeveL = P(sh + .19, 1.07, -.01); parents.sleeveL = 'forearmL'; J.sleeveR = [-J.sleeveL[0], J.sleeveL[1], J.sleeveL[2]]; parents.sleeveR = 'forearmR';
 J.coatB = P(0, .98, -.12); parents.coatB = 'hips';
+// the coat's two front panels hinge at the waist; fighter-moves lifts each with its thigh so a raised knee never crushes the cloth
+J.coatFL = P(.085, 1.0, .02); parents.coatFL = 'hips'; J.coatFR = P(-.085, 1.0, .02); parents.coatFR = 'hips';
 const boneNames = Object.keys(parents), boneIndex = Object.fromEntries(boneNames.map((n, i) => [n, i]));
 const lerp3 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const add3 = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
@@ -114,8 +116,8 @@ const haoriColor = {
 const aboveHem = (x, y, z) => y > HEM - .006 * S;
 const coatBones = (x, y, z) => {
   if (y > 1.02 * S) { const u = sstep(1.02 * S, 1.22 * S, y); return { spine: 1 - u, chest: u }; }
-  const t = sstep(1.0 * S, HEM + .04 * S, y), s = sstep(-.06, .06, x), back = sstep(-.02, -.12, z) * t;
-  return { hips: 1 - t * .7, thighL: t * .7 * s * (1 - back), thighR: t * .7 * (1 - s) * (1 - back), coatB: t * .7 * back };
+  const t = sstep(1.0 * S, .9 * S, y), s = sstep(-.05, .05, x), back = sstep(-.02, -.12, z);
+  return { hips: 1 - t * .95, coatFL: t * .95 * s * (1 - back), coatFR: t * .95 * (1 - s) * (1 - back), coatB: t * .95 * back };
 };
 const chestR = F ? [.128, .122, .094] : [.14, .124, .096];
 add('body', ell(P(0, 1.25, -.01), [chestR[0] + .016, chestR[1] + .018, chestR[2] + .016 + F * .022]), { k: .035, color: haoriColor, bones: { chest: 1 }, tag: 'haori', bias: .006, valid: aboveHem });
@@ -145,19 +147,51 @@ for (const s of [1, -1]) {
   add('body', cone(add3(J['upperArm' + L], [-.02 * s, 0, 0]), J['forearm' + L], .048 * S, .041 * S), { k: .035, color: D.uniform, bones: (x, y, z) => { const t = sstep(.1 * S, sh * S, Math.abs(x)); return { chest: 1 - t, ['upperArm' + L]: t }; }, tag: 'sleeve' });
   add('body', cone(J['forearm' + L], lerp3(J['forearm' + L], J['hand' + L], .92), .041 * S, .033 * S), { k: .03, color: D.uniform, bones: { ['forearm' + L]: 1 }, tag: 'sleeve' });
 }
-// uniform trousers: two separate legs, roomy at the thigh and tucked into white leg wraps at mid-calf
+// Waist of the uniform trousers. The legs themselves are separate meshes (parts.legL/legR, below):
+// sculpted as one blended surface they fused to each other and to the coat hem, and smeared when a leg lifted.
 add('body', ell(P(0, .955, -.005), [(F ? .126 : .12) * S, .09 * S, .085 * S]), { k: .04, color: D.hakama, bones: { hips: 1 }, tag: 'hakama' });
-const pleat = (f, n, a) => { const g = (x, y, z) => { const lx = Math.abs(x) - hipW * S; return f(x, y, z) + a * Math.sin(Math.atan2(lx, z) * n) * sstep(.85 * S, .4 * S, y); }; g.b = f.b.map((v, i) => v + (i < 3 ? -a : a)); return g; };
+const pleat = (f, n, a, cx) => { const g = (x, y, z) => f(x, y, z) + a * Math.sin(Math.atan2(x - cx, z) * n) * sstep(.86 * S, .5 * S, y); g.b = f.b.map((v, i) => v + (i < 3 ? -a : a)); return g; };
+add('body', ell(P(0, .87, -.012), [.062 * S, .06 * S, .066 * S]), { k: .035, color: D.hakama, bones: (x, y) => { const s = sstep(-.05, .05, x), t = sstep(.92 * S, .82 * S, y); return { hips: 1 - t * .6, thighL: s * t * .6, thighR: (1 - s) * t * .6 }; }, tag: 'hakama' });
+// ---------- legs: one clean mesh per leg, weighted along the bone chain with tight joint blends ----------
+parts.legL = []; parts.legR = [];
+const darker = (h, k) => new THREE.Color(h).multiplyScalar(k).getHex();
+const straw = F ? 0xb59a6a : 0xa98f5f;
 for (const s of [1, -1]) {
-  const L = s > 0 ? 'L' : 'R', knee = J['shin' + L], ankle = add3(J['foot' + L], [0, .085 * S, 0]);
-  add('body', pleat(cone(add3(J['thigh' + L], [0, .03, 0]), knee, .08 * S, .066 * S), 7, .0025), { k: .03, color: D.hakama, bones: (x, y) => { const t = sstep(.95 * S, .78 * S, y); return { hips: 1 - t, ['thigh' + L]: t }; }, tag: 'hakama' });
-  add('body', pleat(cone(knee, [knee[0], .3 * S, knee[2] - .005], .066 * S, .062 * S), 7, .0025), { k: .028, color: D.hakama, bones: (x, y) => { const t = sstep(.58 * S, .42 * S, y); return { ['thigh' + L]: 1 - t, ['shin' + L]: t }; }, tag: 'hakama' });
-  add('body', cone([knee[0], .33 * S, knee[2] - .005], add3(J['foot' + L], [0, .005, 0]), .054 * S, .041 * S), { k: .018, color: D.wrap, bones: { ['shin' + L]: 1 }, tag: 'wrap' });
-  const heel = add3(J['foot' + L], [0, -.035 * S, -.035 * S]), toe = add3(J['foot' + L], [0, -.05 * S, .115 * S]);
-  add('body', cone(heel, toe, .041 * S, .032 * S), { k: .03, color: D.wrap, bones: { ['foot' + L]: 1 }, tag: 'foot' });
-  add('body', rbox(add3(J['foot' + L], [0, -.077 * S, .04 * S]), [.046 * S, .009 * S, .122 * S], .008), { k: .005, color: D.sandal, bones: { ['foot' + L]: 1 }, tag: 'sandal', bias: .003 });
+  const L = s > 0 ? 'L' : 'R', g = 'leg' + L, th = J['thigh' + L], kn = J['shin' + L], ft = J['foot' + L];
+  const at = (b, dx, dy, dz) => [b[0] + s * dx * S, b[1] + dy * S, b[2] + dz * S];
+  // weights from the rest position: hips to thigh across the hip crease, thigh to shin across the knee, shin to foot at the ankle
+  const legBones = (x, y, z) => {
+    const hip = sstep(.955 * S, .855 * S, y), knee = sstep(.535 * S, .465 * S, y);
+    const foot = Math.max(sstep(.13 * S, .088 * S, y), sstep(.035 * S, .07 * S, z - ft[2]) * sstep(.17 * S, .115 * S, y));
+    return { hips: 1 - hip, ['thigh' + L]: hip * (1 - knee), ['shin' + L]: knee * (1 - foot), ['foot' + L]: foot };
+  };
+  const o = { bones: legBones };
+  // trousers: full at the hip, shaped over the front of the thigh and the hamstring, narrowing hard into the knee
+  add(g, pleat(cone(at(th, -.006, .06, -.006), at(kn, 0, .035, 0), .074 * S, .054 * S), 6, .0022, th[0]), { k: .03, color: D.hakama, tag: 'hakama', ...o });
+  add(g, ell(at(th, .006, -.15, .014), [.066 * S, .16 * S, .062 * S]), { k: .04, color: D.hakama, tag: 'hakama', ...o });
+  add(g, ell(at(th, -.002, -.2, -.016), [.06 * S, .15 * S, .058 * S]), { k: .04, color: D.hakama, tag: 'hakama', ...o });
+  add(g, ell(at(kn, 0, .006, .02), [.046 * S, .052 * S, .04 * S]), { k: .022, color: D.hakama, tag: 'hakama', ...o }); // kneecap
+  // the trouser leg bloused over the top of the wraps just under the knee
+  add(g, pleat(cone(at(kn, 0, .02, 0), at(kn, 0, -.085, -.004), .054 * S, .057 * S), 6, .002, kn[0]), { k: .02, color: D.hakama, tag: 'hakama', ...o });
+  // white kyahan wraps: snug to the calf, tapering to a narrow ankle, banded where the cloth overlaps
+  const wrapCol = { base: D.wrap, bands: [
+    [(x, y, z) => Math.abs(y - (kn[1] - .085 * S)) - .006 * S, D.cord ?? D.sandal],
+    [(x, y, z) => { const v = ((y / (.034 * S) + Math.atan2((x - kn[0]) * s, z - kn[2]) / (2 * Math.PI)) % 1 + 1) % 1; return Math.abs(v - .5) - .07; }, darker(D.wrap, .84)],
+  ] };
+  add(g, cone(at(kn, 0, -.06, -.006), at(ft, 0, .03, -.002), .047 * S, .03 * S), { k: .02, color: wrapCol, tag: 'wrap', ...o });
+  add(g, ell(at(kn, .002, -.17, -.017), [.044 * S, .095 * S, .043 * S]), { k: .035, color: wrapCol, tag: 'wrap', ...o }); // calf
+  // tabi foot: heel, instep and toes, with a split toe and the sandal straps painted crisp
+  const footCol = { base: D.wrap, bands: [
+    [(x, y, z) => Math.abs((z - ft[2]) - .05 * S + (y - ft[1]) * .55) - .0055 * S, D.sandal],
+    [(x, y, z) => Math.abs(y - (ft[1] + .002 * S)) - .005 * S, D.sandal],
+  ] };
+  add(g, ell(at(ft, 0, -.046, -.032), [.031 * S, .036 * S, .038 * S]), { k: .02, color: footCol, tag: 'foot', ...o });
+  add(g, cone(at(ft, 0, .0, -.004), at(ft, -.002, -.058, .098), .031 * S, .022 * S), { k: .03, color: footCol, tag: 'foot', ...o });
+  add(g, ell(at(ft, -.002, -.066, .1), [.031 * S, .019 * S, .036 * S]), { k: .025, color: footCol, tag: 'foot', ...o });
+  sub(g, rbox(at(ft, -.01, -.06, .132), [.0025 * S, .02 * S, .03 * S], .002), .004);
+  // waraji sole: thin straw, shaped to the foot
+  add(g, rbox(at(ft, -.002, -.079, .034), [.037 * S, .0055 * S, .112 * S], .02), { k: .004, color: straw, tag: 'sandal', bias: .003, ...o });
 }
-add('body', ell(P(0, .86, -.012), [.07 * S, .065 * S, .07 * S]), { k: .035, color: D.hakama, bones: (x, y) => { const s = sstep(-.05, .05, x), t = sstep(.92 * S, .8 * S, y); return { hips: 1 - t * .6, thighL: s * t * .6, thighR: (1 - s) * t * .6 }; }, tag: 'hakama' });
 // sash belt over the hakama waist
 add('body', cone(P(0, 1.045, -.004), P(0, .99, -.004), (F ? .116 : .122) * S, (F ? .122 : .126) * S), { k: .008, color: D.belt, bones: { spine: .6, hips: .4 }, tag: 'belt', bias: .004 });
 
@@ -299,6 +333,7 @@ const headM = finish(surface(parts.head, [-.13 * S, 1.33 * S, -.14 * S], [.13 * 
 // face shading: pull face normals toward a smooth sphere so anime shadows fall cleanly
 for (let v = 0; v < headM.tag.length; v++) if (headM.tag[v] === 'face') { const x = headM.pos[v * 3] - hc[0], y = headM.pos[v * 3 + 1] - hc[1] + .02, z = headM.pos[v * 3 + 2] - hc[2], l = Math.hypot(x, y, z), o = [x / l, y / l, z / l]; let m = 0; for (let a = 0; a < 3; a++) { headM.nrm[v * 3 + a] = headM.nrm[v * 3 + a] * .35 + o[a] * .65; m += headM.nrm[v * 3 + a] ** 2; } m = Math.sqrt(m); for (let a = 0; a < 3; a++) headM.nrm[v * 3 + a] /= m; }
 meshes.push(headM);
+for (const L of ['L', 'R']) { const x0 = J['thigh' + L][0]; meshes.push(finish(surface(parts['leg' + L], [x0 - .15 * S, -.006, -.17 * S], [x0 + .15 * S, 1.02 * S, .2 * S], .0072 * S), painter(parts['leg' + L], .03, t => t === 'sandal' ? .0028 : .0035))); }
 const handP = painter(parts.hands, .02, () => .002);
 for (const s of [1, -1]) { const w = J[s > 0 ? 'handL' : 'handR']; meshes.push(finish(surface(parts.hands, [w[0] - .1 * S, w[1] - .12 * S, w[2] - .1 * S], [w[0] + .1 * S, w[1] + .07 * S, w[2] + .1 * S], .0039 * S), handP)); }
 
