@@ -513,7 +513,18 @@ export function animate(THREE, fighter) {
   const addSpring = (name, tip, k = 60, c = 9, g = 0) => { const b = B[name]; if (!b) return; springs.push({ b, tip: V3(...tip), k, c, g, p: null, v: V3() }); };
   if (female) { const t = ['tail0', 'tail1', 'tail2', 'tail3']; t.forEach((n, i) => { const nx = t[i + 1] ? J[t[i + 1]] : [J[n][0], J[n][1] - .16 * S, J[n][2]]; addSpring(n, [nx[0] - J[n][0], nx[1] - J[n][1], nx[2] - J[n][2]], 70 - i * 12, 8, -2); }); }
   addSpring('sleeveL', [0, -.1 * S, 0], 50, 7, -3); addSpring('sleeveR', [0, -.1 * S, 0], 50, 7, -3); addSpring('coatB', [0, -.3 * S, -.03], 80, 10, -2);
+  // front coat panels: rigid flaps hinged at the waist that lift forward with their thigh (never backward into it)
+  const flaps = ['L', 'R'].filter(L => B['coatF' + L]).map(L => ({ b: B['coatF' + L], th: B['thigh' + L], rest: V3(J['shin' + L][0] - J['thigh' + L][0], J['shin' + L][1] - J['thigh' + L][1], J['shin' + L][2] - J['thigh' + L][2]).normalize() }));
+  const clampF = (v, a, b) => Math.max(a, Math.min(b, v));
+  function coatFlaps() {
+    for (const f of flaps) {
+      const d = f.rest.clone().applyQuaternion(f.th.quaternion), a = Math.atan2(d.z, -d.y) - Math.atan2(f.rest.z, -f.rest.y);
+      const side = Math.atan2(d.x, -d.y) - Math.atan2(f.rest.x, -f.rest.y), lift = clampF(a * .95 + .08 * Math.max(0, a), 0, 1.9);
+      f.b.quaternion.setFromEuler(new THREE.Euler(-lift, 0, clampF(side * .5, -.5, .5) * Math.min(1, lift + .4)));
+    }
+  }
   function springsStep(dt) {
+    coatFlaps();
     for (const s of springs) {
       const b = s.b; b.quaternion.identity(); b.updateMatrixWorld(true);
       const o = b.getWorldPosition(V3()), pq = b.parent.getWorldQuaternion(Q()), target = s.tip.clone().applyQuaternion(pq).add(o), L = s.tip.length();
