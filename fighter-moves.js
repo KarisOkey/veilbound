@@ -350,7 +350,9 @@ export function animate(THREE, fighter) {
     [1.0, P({ hy: -.01, hd: [.1, 0, 0], sw: sw([-.24, .98, .12], N3([-.15, -.97, .18]), [0, .2, .98]), la: [.08, 1.18, .2], face: { brow: 'calm', mouth: 'smile' } })],
     [3, P({ hy: -.01, hd: [.1, 0, 0], sw: sw([-.24, .98, .12], N3([-.15, -.97, .18]), [0, .2, .98]), la: [.08, 1.18, .2], face: { brow: 'calm', mouth: 'smile' } })],
   ], { hold: true, kind: 'ceremony' });
-  const bow = keyClip([[0, idle], [.5, P({ ...idle, sp: [.35, 0, 0], ch: [.15, 0, 0], hd: [.2, 0, 0], face: { blink: 1, mouth: 'calm' } })], [1.2, P({ ...idle, sp: [.35, 0, 0], ch: [.15, 0, 0], hd: [.2, 0, 0], face: { blink: 1, mouth: 'calm' } })], [1.6, idle]], { drawn: false, kind: 'ceremony' });
+  // a formal standing bow (rei): the back stays straight and folds from the hips, eyes lowered, then a slow rise
+  const reiPose = P({ ...idle, hz: -.04, hy: -.012, sp: [.52, 0, 0], ch: [.18, 0, 0], hd: [.12, 0, 0], face: { blink: 1, mouth: 'calm' } });
+  const bow = keyClip([[0, idle], [.55, reiPose], [1.35, reiPose], [1.95, idle]], { drawn: false, kind: 'ceremony' });
 
   // ---------- special arts ----------
   // Haru, Sky-Current Crescent: dash through with a flat cut, turn, launch, leap, and split downward.
@@ -375,6 +377,25 @@ export function animate(THREE, fighter) {
     events: [{ t: .05, type: 'artStart' }, { t: .3, type: 'jump' }, { t: .4, type: 'arc', n: 1, spin: true }, { t: .86, type: 'jump' }, { t: 1.16, type: 'arc', n: 2, heavy: true }, { t: 1.26, type: 'land', heavy: true }],
   }) : null;
 
+  // Haru, Rising Tempest: a launching cut, then he follows the opponent up and turns three spinning cuts in the air
+  // before plunging the last one down. Mitsuki, Thousand Toll: she dashes through the opponent three times, each pass a
+  // cut from a new side, and ends in a full turn that rings like a struck bell.
+  const crouch = keyClip([[0, stance], [.16, W(stance, { hy: -.3, sp: [.38, 0, 0], ch: [.12, 0, 0], hd: [-.22, 0, 0], fr: [-.14, .085, .22, 0], fl: [.16, .085, -.3, .6], face: shout })]]);
+  const art2H = haru ? seqClip([
+    { clip: crouch, dur: .18 }, { clip: H.launcher, dur: .3 }, { clip: H.kiriage, dur: .26 }, { clip: H.yoko, dur: .28, ry: Math.PI }, { clip: H.kesa, dur: .28, ry: Math.PI * 2 }, { clip: H.airCut, dur: .48 },
+  ], {
+    hits: [{ limb: 'blade', t0: .34, t1: .46, dmg: 6, kb: .6, up: 8.5, type: 'launch', unblockable: true }, { limb: 'blade', t0: .6, t1: .7, dmg: 4, kb: .4, type: 'stagger', unblockable: true }, { limb: 'blade', t0: .84, t1: .95, dmg: 4, kb: .4, type: 'stagger', unblockable: true }, { limb: 'blade', t0: 1.1, t1: 1.2, dmg: 4, kb: .4, type: 'stagger', unblockable: true }, { limb: 'blade', t0: 1.42, t1: 1.58, dmg: 12, kb: 2, down: 11, type: 'spike', heavy: true, unblockable: true }],
+    move: [[.18, .42, 4]], air: leap(.32, 1.78, 2.5),
+    events: [{ t: .05, type: 'artStart' }, { t: .3, type: 'jump' }, { t: .4, type: 'arc', n: 1 }, { t: .64, type: 'arc', n: 2 }, { t: .88, type: 'arc', n: 3, spin: true }, { t: 1.14, type: 'arc', n: 4 }, { t: 1.46, type: 'arc', n: 5, heavy: true }, { t: 1.76, type: 'land', heavy: true }],
+  }) : null;
+  const art2M = !haru ? seqClip([
+    { clip: crouch, dur: .16 }, { clip: M.crescent, dur: .3 }, { clip: M.descend, dur: .28, ry: Math.PI }, { clip: M.crescent, dur: .28 }, { clip: M.spin, dur: .52 },
+  ], {
+    hits: [{ limb: 'blade', t0: .22, t1: .32, dmg: 5, kb: .8, type: 'stagger', unblockable: true }, { limb: 'blade', t0: .5, t1: .6, dmg: 5, kb: .8, type: 'stagger', unblockable: true }, { limb: 'blade', t0: .78, t1: .88, dmg: 5, kb: .6, up: 6, type: 'launch', unblockable: true }, { limb: 'blade', t0: 1.16, t1: 1.32, dmg: 13, kb: 6, type: 'down', heavy: true, unblockable: true }],
+    move: [[.16, .3, 10], [.44, .56, 8], [.72, .84, 8]],
+    events: [{ t: .04, type: 'artStart' }, { t: .16, type: 'dash' }, { t: .22, type: 'arc', n: 1 }, { t: .44, type: 'dash' }, { t: .5, type: 'arc', n: 2 }, { t: .72, type: 'dash' }, { t: .78, type: 'arc', n: 3 }, { t: 1.18, type: 'arc', n: 4, heavy: true, spin: true }],
+  }) : null;
+
   // ---------- clip table ----------
   const clips = {
     idle: { loop: true, pose: () => idle, drawn: false },
@@ -387,8 +408,8 @@ export function animate(THREE, fighter) {
     hit: hitHigh, hitHigh, hitMid, stagger, down, launched, crash, ko,
     draw, win, bow,
     ...(haru
-      ? { c1: H.kesa, c2: H.kiriage, c3: H.yoko, c4: H.tsuki, c5: H.karatake, launcher: H.launcher, airCut: H.airCut, dashAttack: H.tsuki, art: artH }
-      : { c1: M.crescent, c2: M.descend, c3: M.spin, c4: M.palm, c5: M.cleave, launcher: M.launcher, airCut: M.airCut, dashAttack: M.palm, art: artM }),
+      ? { c1: H.kesa, c2: H.kiriage, c3: H.yoko, c4: H.tsuki, c5: H.karatake, launcher: H.launcher, airCut: H.airCut, dashAttack: H.tsuki, art: artH, art2: art2H }
+      : { c1: M.crescent, c2: M.descend, c3: M.spin, c4: M.palm, c5: M.cleave, launcher: M.launcher, airCut: M.airCut, dashAttack: M.palm, art: artM, art2: art2M }),
   };
   // names the older code and labs use
   Object.assign(clips, { slash1: clips.c1, slash2: clips.c2, slash3: clips.c3, finisher: clips.art, dodge: clips.backstep });
@@ -445,9 +466,16 @@ export function animate(THREE, fighter) {
     bodyQ.setFromEuler(tmpE.set(p.flip || 0, p.ry || 0, p.roll || 0, 'YXZ')); lift = (p.ly || 0) * S;
     const h = B.hips, hp = V3(J.hips[0] + p.hx * S, J.hips[1] + p.hy * S, J.hips[2] + p.hz * S).sub(C).applyQuaternion(bodyQ).add(C); hp.y += lift;
     h.position.copy(hp); h.quaternion.copy(bodyQ).multiply(Q().setFromEuler(tmpE.set(p.hr[0], p.hr[1], p.hr[2], 'YXZ')));
-    B.spine.quaternion.setFromEuler(tmpE.set(...p.sp, 'YXZ')); B.chest.quaternion.setFromEuler(tmpE.set(...p.ch, 'YXZ'));
+    // the body drives the blade: the torso turns toward the hands, leans into reach and arches under high guards
+    let tw = 0, ln = 0, ar = 0, sb = 0; const armed = p.sw && U.drawn;
+    if (armed) { const g = p.sw.g; tw = Math.max(-.6, Math.min(.6, Math.atan2(g[0], Math.max(.12, g[2])) * .5)); ln = Math.max(-.18, Math.min(.32, (g[2] - .3) * .8)); ar = Math.max(-.12, Math.min(.26, (g[1] - 1.3) * .7)); sb = Math.max(-.15, Math.min(.15, -g[0] * .25)); }
+    B.spine.quaternion.setFromEuler(tmpE.set(p.sp[0] + ln * .6, p.sp[1] + tw * .45, p.sp[2] + sb * .5, 'YXZ')); B.chest.quaternion.setFromEuler(tmpE.set(p.ch[0] + ln * .4 - ar, p.ch[1] + tw * .55, p.ch[2] + sb * .5, 'YXZ'));
     B.neck.quaternion.setFromEuler(tmpE.set(p.hd[0] * .4, p.hd[1] * .4, p.hd[2] * .4, 'YXZ')); B.head.quaternion.setFromEuler(tmpE.set(p.hd[0] * .6, p.hd[1] * .6, p.hd[2] * .6, 'YXZ'));
     for (const n of ['clavL', 'clavR', 'handL', 'handR', 'footL', 'footR']) B[n].quaternion.identity();
+    // shoulders: they rise when the hands go high and roll forward when the arms reach
+    { const hy = (armed ? [p.lh > .5 ? p.sw.g : p.la, p.sw.g] : [p.la, p.ra]);
+      const shrug = v => Math.max(-.08, Math.min(.42, (v[1] - 1.22) * .95)), reach = v => Math.max(0, Math.min(.38, (v[2] - .05) * .7));
+      B.clavL.quaternion.setFromEuler(tmpE.set(0, -reach(hy[0]), shrug(hy[0]), 'YXZ')); B.clavR.quaternion.setFromEuler(tmpE.set(0, reach(hy[1]), -shrug(hy[1]), 'YXZ')); }
     h.updateMatrixWorld(true);
     // legs: knees point along the hips' facing
     for (const [ch, f, sgn] of [['legL', p.fl, 1], ['legR', p.fr, -1]]) {
@@ -499,6 +527,33 @@ export function animate(THREE, fighter) {
     }
   }
 
+  // ---------- fluid layer ----------
+  // Overlapping action: the hips lead, the spine, chest, head and free hand follow on critically damped springs, so
+  // every change of pose carries through the body instead of snapping. Between moves the fighter is never still:
+  // weight rolls from foot to foot and the upper body breathes. Feet, the blade and whole-body spins stay exact.
+  const springOf = {}, FLUID = { hy: 30, hx: 26, hz: 26, hr: 24, sp: 17, ch: 13, hd: 10, la: 15, ra: 15 };
+  let alive = Math.random() * 10;
+  function fluid(p, dt, clip) {
+    if (!(dt > 0)) return p; alive += dt;
+    const o = { ...p };
+    const live = clip && (clip.loop || clip.kind === 'guard') && cur.name !== 'idle' && cur.name !== 'walk' && cur.name !== 'run';
+    if (live) { // a fighter's rhythm: weight shifting, a small bounce, shoulders rolling
+      const a = alive; o.hx = (o.hx || 0) + .022 * Math.sin(a * 1.7); o.hy = (o.hy || 0) - .018 * Math.abs(Math.sin(a * 3.4));
+      o.sp = [o.sp[0] + .03 * Math.sin(a * 3.4 + .6), o.sp[1] + .05 * Math.sin(a * 1.7), o.sp[2] + .025 * Math.sin(a * 1.7 + 1)];
+      o.hd = [o.hd[0] - .02 * Math.sin(a * 3.4), o.hd[1] - .04 * Math.sin(a * 1.7), o.hd[2]];
+    }
+    for (const k in FLUID) {
+      const w = FLUID[k], target = o[k]; if (target === undefined) continue;
+      const arr = Array.isArray(target), vals = arr ? target : [target];
+      let st = springOf[k]; if (!st || st.x.length !== vals.length) st = springOf[k] = { x: vals.slice(), v: vals.map(() => 0) };
+      const f = 1 + 2 * dt * w, oo = w * w, hoo = dt * oo, hhoo = dt * hoo, det = 1 / (f + hhoo);
+      for (let i = 0; i < vals.length; i++) { const x = st.x[i], v = st.v[i]; st.x[i] = (f * x + dt * v + hhoo * vals[i]) * det; st.v[i] = (v + hoo * (vals[i] - x)) * det; }
+      o[k] = arr ? st.x.slice() : st.x[0];
+    }
+    return o;
+  }
+  const resetFluid = () => { for (const k in springOf) delete springOf[k]; };
+
   // ---------- playback ----------
   let cur = { name: 'idle', t: 0 }, prev = null, fade = 0, fadeDur = .1, phase = 0, lean = 0;
   let faceKey = '', blinkT = 2 + Math.random() * 2, blink = 0, flash = 0;
@@ -530,13 +585,15 @@ export function animate(THREE, fighter) {
       lean += ((this._lean || 0) - lean) * Math.min(1, dt * 6);
       fade = Math.max(0, fade - dt / fadeDur);
       let p = poseOf(cur); if (prev && fade > 0) p = blend(p, poseOf(prev), ease(fade)); else prev = null;
+      p = fluid(p, dt, c);
       apply(p); springsStep(dt); U.updateGear?.(dt);
       blinkT -= dt; if (blinkT < 0) { blink = 1; blinkT = 2.5 + Math.random() * 3; } blink = Math.max(0, blink - dt * 8);
       const f = p.face || {}, b = Math.max(f.blink || 0, blink > .3 ? 1 : 0), key = (f.brow || 'calm') + (f.mouth || 'calm') + (b > .5 ? 1 : 0);
       if (key !== faceKey) { faceKey = key; U.face.draw({ blink: b > .5 ? 1 : 0, mouth: f.mouth || 'calm', brow: f.brow || 'calm' }); }
       flash = Math.max(0, flash - dt * 9); U.uniforms.flash.value = flash * .8;
     },
-    seek(t) { cur.t = t; prev = null; const c = clips[cur.name]; if (c.events) for (const e of c.events) if (e.type === 'draw' && e.t <= t) U.setDrawn(true); apply(poseOf(cur)); springsStep(0); U.updateGear?.(0); },
+    resetFluid,
+    seek(t) { cur.t = t; prev = null; resetFluid(); const c = clips[cur.name]; if (c.events) for (const e of c.events) if (e.type === 'draw' && e.t <= t) U.setDrawn(true); apply(poseOf(cur)); springsStep(0); U.updateGear?.(0); },
   };
   apply(poseOf(cur)); springsStep(0);
   return api;

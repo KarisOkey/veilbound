@@ -92,6 +92,7 @@ export function createCombat(THREE, scene, { toast = () => {}, director = null, 
   function callout(text, sub = '', color = '#fff') { if (fx?.callout) fx.callout(text, { sub, color }); else { fallback.innerHTML = text + (sub ? `<div style="font-size:14px;letter-spacing:.3em">${sub}</div>` : ''); fallback.style.opacity = 1; fallbackT = 1.2; } }
 
   // ---------- state ----------
+  let cinema = false, startCall = null, roam = false, autoLock = true; // autoLock: clashes may turn into blade locks on their own // a cinematic director (the trailer) poses the fighters while no duel runs
   let active = false, auto = false, hitStop = 0, slow = 0, slowScale = 1, shake = 0, phase = 'off', phaseT = 0, round = 1, arena = null, place = { x: 0, z: 0, y: 0 }, clashChain = 0, clashT = -9, clock = 0, lockState = null;
   const input = { attack: false, kick: false, grab: false, guard: false, dodge: false, art: false, jump: false };
   const clipOf = f => f.a.clip, kind = f => f.a.clip.kind;
@@ -109,16 +110,18 @@ export function createCombat(THREE, scene, { toast = () => {}, director = null, 
   const chest = (f, out = V3()) => f.g.userData.bones.chest.getWorldPosition(out);
 
   let boxOn = false;
-  function play(f, name, fade) { if (name !== 'art') f.isArt = false; f.a.restart(name, fade); f.hitDone.clear(); f.hasPrev = false; }
+  const ARTS = { art: ['Veil Art', 'Sky-Current Crescent', '天流', 'Bell Art', 'Ember Bell Descent', '燼鐘'], art2: ['Veil Art', 'Rising Tempest', '天嵐', 'Bell Art', 'Thousand Toll', '千鐘'] };
+  const artName = n => n === 'art' || n === 'art2';
+  function play(f, name, fade) { if (!artName(name)) f.isArt = false; f.a.restart(name, fade); f.hitDone.clear(); f.hasPrev = false; }
   function startAttack(f, name) {
     if (!f.a.clips[name]) return false;
     play(f, name); f.queue = null;
     if (name === 'kick' && (f === H || Math.random() < .4)) director?.cue('kick', { who: f.side, at: chest(f) });
-    if (name === 'art') {
-      f.art = 0; f.isArt = true; const dur = f.a.clip.dur;
+    if (artName(name)) {
+      f.art = 0; f.isArt = true; const AN = ARTS[name], me = f === H ? 0 : 3; const dur = f.a.clip.dur;
       { const m0 = f.a.clip.move?.[0]; const reach = m0 ? (m0[1] - m0[0]) * m0[2] : 3; f.artReach = Math.max(.35, Math.min(3, (dist(f, f.foe) - .4) / reach)); }
       director?.cue('art', { who: f.side, dur: Math.min(3.4, dur + 1.4) }); slow = .85; slowScale = .1;
-      fx?.cutIn?.({ who: f.g, side: f === H ? 'left' : 'right', art: f === H ? 'Veil Art' : 'Bell Art', name: f === H ? 'Sky-Current Crescent' : 'Ember Bell Descent', kanji: f === H ? '天流' : '燼鐘', color: f === H ? '#6fe7ff' : '#ff6a4a' }, 1.3);
+      fx?.cutIn?.({ who: f.g, side: f === H ? 'left' : 'right', art: AN[me], name: AN[me + 1], kanji: AN[me + 2], color: f === H ? '#6fe7ff' : '#ff6a4a' }, 1.3);
       fx?.flash?.(f === H ? '#bff6ff' : '#ffd0c0', .25, .6); fx?.speedLines?.(1.2, { kind: 'radial', dur: .6 });
     }
     return true;
@@ -168,7 +171,7 @@ export function createCombat(THREE, scene, { toast = () => {}, director = null, 
     if (name === 'dashIn' && f === H && Math.random() < .35) director?.cue('dash', { who: f.side });
   }
   function doJump(f) { if (!canAct(f) || f.air || busy(f)) return; play(f, 'jump'); f.air = true; f.vy = 6.8; fx?.dust?.(V3(f.g.position.x, f.g.position.y + .05, f.g.position.z), { size: .7, count: 6 }); }
-  function doArt(f) { if (f.art < 100 || !canAct(f) || f.air || (busy(f) && !isAttack(f))) return; startAttack(f, 'art'); f.comboKind = null; }
+  function doArt(f, which) { if (f.art < 100 || !canAct(f) || f.air || (busy(f) && !isAttack(f))) return; const n = which || f.nextArt || 'art'; f.nextArt = n === 'art' ? 'art2' : 'art'; startAttack(f, n); f.comboKind = null; }
 
   // ---------- contact geometry ----------
   const tmp = { a: V3(), b: V3(), c: V3(), d: V3(), e: V3() };
@@ -234,7 +237,7 @@ export function createCombat(THREE, scene, { toast = () => {}, director = null, 
     hitStop = .12; shake = Math.max(shake, .2);
     fx?.clashBurst?.(at, {}); fx?.impactFrame?.('white', .05);
     const recent = clock - clashT < 1.6; clashChain = recent ? clashChain + 1 : 1; clashT = clock;
-    if (clashChain >= 2 || Math.random() < .22) startLock(at);
+    if (autoLock && (clashChain >= 2 || Math.random() < .22)) startLock(at);
     else { director?.cue('clash', { at }); callout('Clash', '', '#ffe2a0'); }
   }
   function startLock(at) {
@@ -379,13 +382,14 @@ export function createCombat(THREE, scene, { toast = () => {}, director = null, 
     for (const f of F) { f.hp = 100; f.guardHp = 100; f.vel.set(0, 0, 0); f.y = 0; f.vy = 0; f.air = false; f.queue = null; f.isArt = false; f.carry = null; f.invul = 0; f.hits = 0; }
     lockState = null;
   }
-  function start() {
-    if (active) return; active = true; round = 1; resetFighters(); H.art = R.art = 0; hud.hidden = false; document.body.classList.add('dueling'); hudUpdate();
-    phase = 'intro'; phaseT = 0; $('duel-round').textContent = 'ROUND 1';
-    for (const f of F) { f.g.userData.setDrawn(false); play(f, 'draw', .2); f.g.rotation.y = dirTo(f, f.foe); }
-    director?.reset(); director?.cue('intro');
-    fx?.vsSplash?.({ left: { who: H.g, name: 'Haru', title: 'Apprentice Warden', kanji: '晴', color: '#6fe7ff' }, right: { who: R.g, name: 'Mitsuki', title: 'Bell Warden', kanji: '光月', color: '#ff6a4a' } }, 2.4);
-    toast('Mitsuki draws her blade. “Show me what the valley taught you.”');
+  function start(opts = {}) {
+    if (active) return; active = true; round = opts.round || 1; resetFighters(); H.art = R.art = 0; hud.hidden = false; document.body.classList.add('dueling'); hudUpdate();
+    phase = 'intro'; phaseT = 0; $('duel-round').textContent = 'ROUND ' + round;
+    for (const f of F) { f.g.rotation.y = dirTo(f, f.foe); if (opts.draw === false) { f.g.userData.setDrawn(true); play(f, 'stance', .15); } else { f.g.userData.setDrawn(false); play(f, 'draw', .2); } }
+    phaseT = 2.6 - (opts.intro ?? 2.6); startCall = opts.callout === undefined ? ['Round ' + round, 'Fight'] : opts.callout ? [opts.callout, ''] : null;
+    director?.reset(); if ((opts.intro ?? 2.6) > 1.5 && opts.introCam !== false) director?.cue('intro');
+    if (opts.splash !== false) fx?.vsSplash?.({ left: { who: H.g, name: 'Haru', title: 'Apprentice Warden', kanji: '晴', color: '#6fe7ff' }, right: { who: R.g, name: 'Mitsuki', title: 'Bell Warden', kanji: '光月', color: '#ff6a4a' } }, 2.4);
+    if (!opts.quiet) toast('Mitsuki draws her blade. “Show me what the valley taught you.”');
   }
   // fire one of every effect out of sight so the renderer can compile them during loading
   function warm() {
@@ -440,27 +444,28 @@ export function createCombat(THREE, scene, { toast = () => {}, director = null, 
     let dt = rawDt; if (hitStop > 0) { hitStop -= rawDt; dt = rawDt * .04; } else if (slow > 0) { slow -= rawDt; dt = rawDt * slowScale; }
     const out = { dx: 0, dz: 0, lock: false, yaw: null, inArena: inArena(ctx.pos.x, ctx.pos.z), timeScale: dt / Math.max(rawDt, 1e-6) };
     // the hero's ground position follows the player's
-    H.g.position.x = ctx.pos.x; H.g.position.z = ctx.pos.z;
+    if (!H.travel) { H.g.position.x = ctx.pos.x; H.g.position.z = ctx.pos.z; }
     H.g.visible = H.shadow.visible = ctx.visible;
-    if (active && !out.inArena && phase === 'fight' && !H.carry) stop(false);
+    if (active && !roam && !out.inArena && phase === 'fight' && !H.carry) stop(false);
     if (!active) {
       const gy = ctx.ground(ctx.pos.x, ctx.pos.z); H.g.position.y += (gy - H.g.position.y) * Math.min(1, rawDt * 14);
-      if (ctx.moveSpeed > .2) { H.a.play(ctx.moveSpeed > 4.5 ? 'run' : 'walk', .18); H.a.setSpeed(ctx.moveSpeed, ctx.moveSpeed > 4.5 ? 'run' : 'walk'); H.a._lean = 0; turn(H, ctx.moveDir, 10, rawDt); }
+      if (cinema) { R.g.position.y = place.y; }
+      else if (ctx.moveSpeed > .2) { H.a.play(ctx.moveSpeed > 4.5 ? 'run' : 'walk', .18); H.a.setSpeed(ctx.moveSpeed, ctx.moveSpeed > 4.5 ? 'run' : 'walk'); H.a._lean = 0; turn(H, ctx.moveDir, 10, rawDt); }
       else { H.a.play('idle', .25); H.a.setSpeed(0); }
       const d = Math.hypot(H.g.position.x - R.g.position.x, H.g.position.z - R.g.position.z);
-      turn(R, d < 12 ? dirTo(R, H) : 0, 3, rawDt);
-      if (R.a.name === 'bow' && R.a.done) R.a.play('idle', .3);
-      if (d < 5 && !R.greeted) { R.greeted = true; R.a.play('bow', .2); } if (d > 9) R.greeted = false;
+      if (!cinema) turn(R, d < 12 ? dirTo(R, H) : 0, 3, rawDt);
+      if (!cinema) { if (R.a.name === 'bow' && R.a.done) R.a.play('idle', .3);
+      if (d < 5 && !R.greeted) { R.greeted = true; R.a.play('bow', .2); } if (d > 9) R.greeted = false; }
       R.g.position.y = place.y;
     } else {
       phaseT += rawDt;
-      if (phase === 'intro' && phaseT > 2.6) { phase = 'fight'; callout('Round ' + round, 'Fight', '#ffffff'); for (const f of F) if (f.a.name === 'draw') play(f, 'stance', .2); }
+      if (phase === 'intro' && phaseT > 2.6) { phase = 'fight'; if (startCall) callout(startCall[0], startCall[1], '#ffffff'); for (const f of F) if (f.a.name === 'draw') play(f, 'stance', .2); }
       if (phase === 'ko' && phaseT > 4.2) { round++; resetFighters(); phase = 'intro'; phaseT = 1.4; $('duel-round').textContent = 'ROUND ' + round; for (const f of F) play(f, 'stance', .3); fx?.letterbox?.(false); director?.cue('end'); }
       if (phase === 'ko' && phaseT > 1.2) { const w = H.hp > 0 ? H : R; if (w.a.name !== 'win' && !busy(w)) play(w, 'win', .3); }
       // moves that just finished hand back to stance before anyone acts this frame
       for (const f of F) if (f.a.done) {
         const n = f.a.name;
-        if (n === 'art') director?.cue('end');
+        if (artName(n)) director?.cue('end');
         if (n === 'grab') { if (!f.whiff) f.g.rotation.y += Math.PI; f.throwing = false; }
         if (f.hp > 0 && !f.air && n !== 'thrown' && n !== 'ko' && n !== 'win') play(f, 'stance', n === 'grab' ? 0 : .12);
       }
@@ -487,6 +492,7 @@ export function createCombat(THREE, scene, { toast = () => {}, director = null, 
       if (lockState) lockStep(dt, out);
       for (const f of F) {
         f.invul = Math.max(0, f.invul - dt);
+        if (f.travel) { travelStep(f, dt, ctx, out); continue; }
         const plan = f.ai && phase === 'fight' && !lockState ? ai(f, dt) : null;
         if (f.ai) f.guardHeld = (f.guardT || 0) > 0;
         if (plan && canAct(f) && !busy(f) && !f.air) {
@@ -543,12 +549,60 @@ export function createCombat(THREE, scene, { toast = () => {}, director = null, 
     shake = Math.max(0, shake - rawDt * 1.6); out.shake = shake;
     return out;
   }
+  // ---------- roaming leaps: the duel crosses the location ----------
+  // Both fighters leap together toward a new spot (a rooftop, a far corner, a high platform), cross blades at the top
+  // of the arc and land side by side to keep fighting there. Used by the trailer; needs roam (no battle-ground fence).
+  const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  // mode 'leap': a short arc (crouch, fast rise, brief apex, faster fall, linear travel).
+  // 'hop': a ridge hop, low and quick. 'fall': drop straight down from where they are and land hard.
+  // Fighters never move as one: the second takes off a beat later on a different arc.
+  function leapTo(target, { h = 1.4, dur = .62, gap = 2.2, clash: doClash = false, mode = 'leap', lag = .14, crouch = .1 } = {}) {
+    const mid = H.g.position.clone().lerp(R.g.position, .5), dir = V3(target.x - mid.x, 0, target.z - mid.z); const len = dir.length() || 1; dir.divideScalar(len);
+    const side = V3(dir.z, 0, -dir.x);
+    const hb = H.g.position.clone().sub(mid).dot(dir) < 0;
+    for (const f of F) {
+      const behind = (f === H) === hb, to = V3(target.x, target.y ?? 0, target.z).addScaledVector(dir, mode === 'fall' ? 0 : behind ? -gap / 2 : gap / 2);
+      if (mode === 'fall') to.addScaledVector(side, (f === H ? -1 : 1) * gap / 2);
+      const delay = (behind ? 0 : lag) + (mode === 'fall' ? 0 : crouch);
+      f.travel = { from: f.g.position.clone(), to, t: 0, delay, dur: dur * (behind ? 1 : .94), h: h * (behind ? 1 : 1.18), mode, side, dir, swung: false, clashed: !doClash, launched: false };
+      f.vel.set(0, 0, 0); f.air = true; f.vy = 0; f.queue = null; play(f, mode === 'fall' ? 'launched' : 'jump', .05);
+    }
+    return { mid, dir, side, len };
+  }
+  function travelStep(f, dt, ctx, out) {
+    const T = f.travel; T.t += dt;
+    if (T.t < T.delay) { f.g.userData.bladePoints(f.prevTip, f.prevBase); f.hasPrev = true; if (f === H) out.tp = { x: f.g.position.x, z: f.g.position.z }; return; } // the crouch
+    if (!T.launched) { T.launched = true; if (T.mode !== 'fall') { fx?.dust?.(V3(f.g.position.x, f.g.position.y + .05, f.g.position.z), { size: .9, count: 8 }); fx?.afterimage?.(f.g, { color: colors(f)[0], life: .25 }); } }
+    const u = Math.min(1, (T.t - T.delay) / T.dur);
+    let x, z, y;
+    if (T.mode === 'fall') { const e = u * u; x = T.from.x + (T.to.x - T.from.x) * Math.min(1, u * 1.6); z = T.from.z + (T.to.z - T.from.z) * Math.min(1, u * 1.6); y = T.from.y + (T.to.y - T.from.y) * e; }
+    else {
+      const e = u < .85 ? u / .85 * .92 : .92 + (u - .85) / .15 * .08; // near-linear travel, easing only into the landing
+      x = T.from.x + (T.to.x - T.from.x) * e; z = T.from.z + (T.to.z - T.from.z) * e;
+      const ua = .58, arc = u < ua ? 1 - ((u - ua) / ua) ** 2 : 1 - ((u - ua) / (1 - ua)) ** 2; // fall is quicker than rise
+      y = T.from.y + (T.to.y - T.from.y) * e + T.h * Math.max(0, arc);
+    }
+    f.g.position.set(x, y, z); const gy = ctx.ground(x, z); f.y = Math.max(0, y - gy);
+    turn(f, dirTo(f, f.foe), 12, dt);
+    if (f === H) out.tp = { x, z };
+    if (!T.clashed && u > .5 && f === H) { T.clashed = true; R.travel && (R.travel.clashed = true); const at = chest(H).lerp(chest(R), .5);
+      fx?.clashBurst?.(at, {}); fx?.sparks?.(at, { count: 30, speed: 8 }); hitStop = .05; shake = Math.max(shake, .1); }
+    if (u >= 1) {
+      f.travel = null; f.air = false; f.y = 0; f.vy = 0; const heavy = T.mode === 'fall' && f === H;
+      play(f, heavy ? 'crash' : 'land', .04); fx?.dust?.(V3(x, gy + .05, z), { size: heavy ? 2 : 1.1, count: heavy ? 18 : 10 });
+      if (heavy) { fx?.debris?.(V3(x, gy, z), { count: 14 }); fx?.shockwave?.(V3(x, gy + .05, z), { radius: 2.4 }); shake = Math.max(shake, .3); hitStop = .08; }
+      else { hitStop = Math.max(hitStop, .03); shake = Math.max(shake, .06); }
+    }
+    f.g.userData.bladePoints(f.prevTip, f.prevBase); f.hasPrev = true;
+  }
+
   function move(f, dx, dz, ctx, out) {
     if (f === H) { out.dx += dx; out.dz += dz; return; }
     const x = f.g.position.x + dx, z = f.g.position.z + dz;
-    if (ctx.canWalk(x, z) && inArena(x, z)) { f.g.position.x = x; f.g.position.z = z; }
-    else if (ctx.canWalk(x, f.g.position.z) && inArena(x, f.g.position.z)) f.g.position.x = x;
-    else if (ctx.canWalk(f.g.position.x, z) && inArena(f.g.position.x, z)) f.g.position.z = z;
+    const ok = (a, b) => ctx.canWalk(a, b) && (roam || inArena(a, b));
+    if (ok(x, z)) { f.g.position.x = x; f.g.position.z = z; }
+    else if (ok(x, f.g.position.z)) f.g.position.x = x;
+    else if (ok(f.g.position.x, z)) f.g.position.z = z;
   }
   function carryStep(o, dt, ctx, out) {
     const c = o.carry, t = (c.t += dt), by = c.by, D = .62, s = Math.min(1, Math.max(0, (t - .22) / .42));
@@ -573,7 +627,9 @@ export function createCombat(THREE, scene, { toast = () => {}, director = null, 
   }
   return {
     hero, rival, fighters: F, update, setRegion, start, stop, inArena, camState, warm,
-    force(who, what) { const f = who === 'rival' ? R : H; if (what === 'art') { f.art = 100; if (canAct(f)) { if (busy(f)) play(f, 'stance', 0); doArt(f); } } if (what === 'lock') startLock(chest(H).lerp(chest(R), .5)); if (what === 'clash') clash(H, R, chest(H).lerp(chest(R), .5)); if (what === 'parry') { f.foe.guardPress = clock + .1; startAttack(f, 'c1'); f.comboKind = 'sword'; } if (['c1', 'kick', 'kick2', 'launcher', 'c5', 'dashAttack'].includes(what)) { if (busy(f)) play(f, 'stance', 0); startAttack(f, what); } if (what === 'grab') doGrab(f); if (what === 'noai') f.ai = false; },
+    force(who, what) { const f = who === 'rival' ? R : H; if (artName(what)) { f.art = 100; if (canAct(f)) { if (busy(f)) play(f, 'stance', 0); doArt(f, what); } } if (what === 'lock') startLock(chest(H).lerp(chest(R), .5)); if (what === 'clash') clash(H, R, chest(H).lerp(chest(R), .5)); if (what === 'parry') { f.foe.guardPress = clock + .1; startAttack(f, 'c1'); f.comboKind = 'sword'; } if (['c1', 'kick', 'kick2', 'launcher', 'c5', 'dashAttack'].includes(what)) { if (busy(f)) play(f, 'stance', 0); startAttack(f, what); } if (what === 'grab') doGrab(f); if (what === 'noai') f.ai = false; },
+    get cinema() { return cinema; }, set cinema(v) { cinema = !!v; },
+    get roam() { return roam; }, set roam(v) { roam = !!v; }, get autoLock() { return autoLock; }, set autoLock(v) { autoLock = !!v; }, leapTo, get traveling() { return !!(H.travel || R.travel); },
     get active() { return active; }, get auto() { return auto; }, get phase() { return phase; }, setAuto(v) { auto = !!v; H.ai = auto; },
     state: () => ({ active, auto, round, phase, lock: !!lockState, hero: { hp: H.hp, art: Math.round(H.art), guard: Math.round(H.guardHp), anim: H.a.name, air: +H.y.toFixed(2) }, rival: { hp: R.hp, art: Math.round(R.art), guard: Math.round(R.guardHp), anim: R.a.name, air: +R.y.toFixed(2), pos: [R.g.position.x, R.g.position.z] } }),
     input,
