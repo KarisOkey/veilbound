@@ -178,19 +178,25 @@ for (const s of [1, -1]) {
     [(x, y, z) => Math.abs(y - (kn[1] - .085 * S)) - .006 * S, D.cord ?? D.sandal],
     [(x, y, z) => { const v = ((y / (.034 * S) + Math.atan2((x - kn[0]) * s, z - kn[2]) / (2 * Math.PI)) % 1 + 1) % 1; return Math.abs(v - .5) - .07; }, darker(D.wrap, .84)],
   ] };
-  add(g, cone(at(kn, 0, -.06, -.006), at(ft, 0, .03, -.002), .047 * S, .03 * S), { k: .02, color: wrapCol, tag: 'wrap', ...o });
+  add(g, cone(at(kn, 0, -.06, -.006), at(ft, 0, .045, -.003), .047 * S, .029 * S), { k: .02, color: wrapCol, tag: 'wrap', bias: .0015, ...o });
   add(g, ell(at(kn, .002, -.17, -.017), [.044 * S, .095 * S, .043 * S]), { k: .035, color: wrapCol, tag: 'wrap', ...o }); // calf
-  // tabi foot: heel, instep and toes, with a split toe and the sandal straps painted crisp
-  const footCol = { base: D.wrap, bands: [
-    [(x, y, z) => Math.abs((z - ft[2]) - .05 * S + (y - ft[1]) * .55) - .0055 * S, D.sandal],
-    [(x, y, z) => Math.abs(y - (ft[1] + .002 * S)) - .005 * S, D.sandal],
+  // tabi foot: a dark split-toe sock under the white wraps, so the ankle reads as a joint and the foot as a foot.
+  // Low and flat: heel, instep sloping down to the ball, a separate big toe. Hanao straps and ankle cord painted crisp.
+  const tabi = darker(D.uniform, F ? 1.05 : 1.15), strap = D.cord ?? D.sandal;
+  const footCol = { base: tabi, bands: [
+    [(x, y, z) => { const dx = Math.abs((x - ft[0]) * s + .006 * S); return Math.max(Math.abs((z - ft[2]) - .104 * S + dx * 1.9) - .0045 * S, ft[1] - .07 * S - y); }, strap],
+    [(x, y, z) => Math.abs(y - (ft[1] + .004 * S)) - .0042 * S, strap],
   ] };
-  add(g, ell(at(ft, 0, -.046, -.032), [.031 * S, .036 * S, .038 * S]), { k: .02, color: footCol, tag: 'foot', ...o });
-  add(g, cone(at(ft, 0, .0, -.004), at(ft, -.002, -.058, .098), .031 * S, .022 * S), { k: .03, color: footCol, tag: 'foot', ...o });
-  add(g, ell(at(ft, -.002, -.066, .1), [.031 * S, .019 * S, .036 * S]), { k: .025, color: footCol, tag: 'foot', ...o });
-  sub(g, rbox(at(ft, -.01, -.06, .132), [.0025 * S, .02 * S, .03 * S], .002), .004);
+  const fo = { color: footCol, tag: 'foot', ...o };
+  add(g, cone(at(ft, 0, .032, -.004), at(ft, 0, -.02, -.012), .029 * S, .03 * S), { k: .015, ...fo }); // ankle
+  add(g, ell(at(ft, 0, -.052, -.036), [.026 * S, .032 * S, .03 * S]), { k: .022, ...fo }); // heel
+  add(g, cone(at(ft, 0, -.025, .0), at(ft, -.002, -.062, .086), .028 * S, .017 * S), { k: .03, ...fo }); // instep
+  add(g, ell(at(ft, .001, -.066, .045), [.031 * S, .019 * S, .066 * S]), { k: .03, ...fo }); // sole of the foot, flat and wide
+  add(g, ell(at(ft, -.018, -.071, .118), [.012 * S, .0125 * S, .024 * S]), { k: .012, ...fo }); // big toe
+  add(g, ell(at(ft, .009, -.073, .11), [.02 * S, .0115 * S, .024 * S]), { k: .012, ...fo }); // other toes
+  sub(g, rbox(at(ft, -.0045, -.07, .135), [.0018 * S, .02 * S, .028 * S], .0015), .003);
   // waraji sole: thin straw, shaped to the foot
-  add(g, rbox(at(ft, -.002, -.079, .034), [.037 * S, .0055 * S, .112 * S], .02), { k: .004, color: straw, tag: 'sandal', bias: .003, ...o });
+  add(g, rbox(at(ft, -.002, -.081, .036), [.035 * S, .0042 * S, .11 * S], .022), { k: .003, color: straw, tag: 'sandal', bias: .003, ...o });
 }
 // sash belt over the hakama waist
 add('body', cone(P(0, 1.045, -.004), P(0, .99, -.004), (F ? .116 : .122) * S, (F ? .122 : .126) * S), { k: .008, color: D.belt, bones: { spine: .6, hips: .4 }, tag: 'belt', bias: .004 });

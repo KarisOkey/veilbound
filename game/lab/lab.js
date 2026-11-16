@@ -15,7 +15,7 @@ const who=q.get('who')||'both';const t0=performance.now();
 const fighters=[];for(const id of who==='both'?['haru','mitsuki']:[who]){const f=makeFighter(THREE,id);scene.add(f);fighters.push(f);}
 if(fighters.length===2){fighters[0].position.x=-.45;fighters[1].position.x=.45;}
 const build=Math.round(performance.now()-t0);
-const views={front:[[0,1.05,4.6],[0,.9,0]],side:[[4.6,1.05,0],[0,.9,0]],back:[[0,1.2,-4.6],[0,.9,0]],face:[[fighters.length>1?-.45:0,1.58,.75],[fighters.length>1?-.45:0,1.57,0]],face2:[[.45,1.6,.75],[.45,1.6,0]],three:[[2.6,1.6,3.4],[0,.9,0]],left:[[-3.6,1.3,2.2],[0,.95,0]],low:[[1.8,.6,3.2],[0,1.0,0]]};
+const views={front:[[0,1.05,4.6],[0,.9,0]],side:[[4.6,1.05,0],[0,.9,0]],back:[[0,1.2,-4.6],[0,.9,0]],face:[[fighters.length>1?-.45:0,1.58,.75],[fighters.length>1?-.45:0,1.57,0]],face2:[[.45,1.6,.75],[.45,1.6,0]],three:[[2.6,1.6,3.4],[0,.9,0]],left:[[-3.6,1.3,2.2],[0,.95,0]],low:[[1.8,.6,3.2],[0,1.0,0]],feet:[[.55,.32,.85],[0,.07,.02]],feetside:[[.95,.16,.12],[0,.07,.02]],feettop:[[.25,.9,.55],[0,.04,.04]]};
 const v=views[q.get('cam')||'three'];cam.position.set(...v[0]);const controls=new OrbitControls(cam,renderer.domElement);controls.target.set(...v[1]);controls.update();
 let moves=null;try{moves=await import(q.get('moves')?'../fighter-moves-'+q.get('moves')+'.js':'../fighter-moves.js');}catch(e){console.warn('moves',e.message);}
 const mixers=fighters.map(f=>moves?moves.animate(THREE,f):null);
